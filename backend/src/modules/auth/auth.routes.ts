@@ -1,15 +1,24 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { errorResponseSchema } from "../../shared/zod.js";
+import { AuthController } from "./auth.controller.js";
 import { AuthService } from "./auth.service.js";
 import { authResponseSchema, loginBodySchema, registerBodySchema } from "./auth.schemas.js";
 
 export async function authRoutes(app: FastifyInstance) {
   const routes = app.withTypeProvider<ZodTypeProvider>();
+  const authService = new AuthService(app.prisma);
+  const authController = new AuthController(authService, (payload) => app.jwt.sign(payload));
 
   routes.post(
     "/register",
     {
+      config: {
+        rateLimit: {
+          max: 8,
+          timeWindow: "1 minute"
+        }
+      },
       schema: {
         tags: ["auth"],
         body: registerBodySchema,
@@ -19,18 +28,18 @@ export async function authRoutes(app: FastifyInstance) {
         }
       }
     },
-    async (request, reply) => {
-      const service = new AuthService(app.prisma);
-      const user = await service.register(request.body);
-      const token = app.jwt.sign({ sub: user.id, email: user.email, role: user.role });
-
-      return reply.code(201).send({ user, token });
-    }
+    (request, reply) => authController.register(request, reply)
   );
 
   routes.post(
     "/login",
     {
+      config: {
+        rateLimit: {
+          max: 12,
+          timeWindow: "1 minute"
+        }
+      },
       schema: {
         tags: ["auth"],
         body: loginBodySchema,
@@ -40,12 +49,6 @@ export async function authRoutes(app: FastifyInstance) {
         }
       }
     },
-    async (request) => {
-      const service = new AuthService(app.prisma);
-      const user = await service.validateLogin(request.body);
-      const token = app.jwt.sign({ sub: user.id, email: user.email, role: user.role });
-
-      return { user, token };
-    }
+    (request) => authController.login(request)
   );
 }

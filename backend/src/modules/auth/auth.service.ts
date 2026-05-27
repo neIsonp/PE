@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import { AppError } from "../../shared/app-error.js";
 import { hashPassword, verifyPassword } from "../../shared/password.js";
 import { toPublicUser } from "../users/user.mapper.js";
@@ -18,16 +18,24 @@ export class AuthService {
 
     const passwordHash = await hashPassword(input.password);
 
-    const user = await this.prisma.user.create({
-      data: {
-        name: input.name,
-        email: input.email,
-        passwordHash,
-        institution: input.institution ?? null
-      }
-    });
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          name: input.name,
+          email: input.email,
+          passwordHash,
+          institution: input.institution?.trim() || null
+        }
+      });
 
-    return toPublicUser(user);
+      return toPublicUser(user);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        throw new AppError(409, "Já existe um utilizador com este email.");
+      }
+
+      throw error;
+    }
   }
 
   async validateLogin(input: LoginInput) {

@@ -10,6 +10,7 @@ export function toPublicUser(user: User): PublicUser {
     role: isUserRole(user.role) ? user.role : "USER",
     bio: user.bio,
     institution: user.institution,
+    avatarUrl: user.avatarUrl,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString()
   };

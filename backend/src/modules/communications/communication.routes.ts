@@ -1,0 +1,95 @@
+import type { FastifyInstance } from "fastify";
+import type { ZodTypeProvider } from "fastify-type-provider-zod";
+import { errorResponseSchema } from "../../shared/zod.js";
+import { CommunicationController } from "./communication.controller.js";
+import { CommunicationService } from "./communication.service.js";
+import {
+  contactMessageBodySchema,
+  contactMessageResponseSchema,
+  contactMessagesListResponseSchema,
+  newsletterBodySchema,
+  newsletterSubscriptionResponseSchema,
+  newsletterSubscriptionsListResponseSchema
+} from "./communication.schemas.js";
+
+export async function communicationRoutes(app: FastifyInstance) {
+  const routes = app.withTypeProvider<ZodTypeProvider>();
+  const communicationService = new CommunicationService(app.prisma);
+  const communicationController = new CommunicationController(communicationService);
+
+  routes.post(
+    "/contact",
+    {
+      config: {
+        rateLimit: {
+          max: 10,
+          timeWindow: "1 minute"
+        }
+      },
+      schema: {
+        tags: ["communications"],
+        body: contactMessageBodySchema,
+        response: {
+          201: contactMessageResponseSchema,
+          400: errorResponseSchema
+        }
+      }
+    },
+    (request, reply) => communicationController.createContactMessage(request, reply)
+  );
+
+  routes.get(
+    "/contact",
+    {
+      preHandler: [app.authenticate],
+      schema: {
+        tags: ["communications"],
+        security: [{ bearerAuth: [] }],
+        response: {
+          200: contactMessagesListResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema
+        }
+      }
+    },
+    (request) => communicationController.listContactMessages(request)
+  );
+
+  routes.post(
+    "/newsletter",
+    {
+      config: {
+        rateLimit: {
+          max: 10,
+          timeWindow: "1 minute"
+        }
+      },
+      schema: {
+        tags: ["communications"],
+        body: newsletterBodySchema,
+        response: {
+          201: newsletterSubscriptionResponseSchema,
+          409: errorResponseSchema
+        }
+      }
+    },
+    (request, reply) => communicationController.subscribeNewsletter(request, reply)
+  );
+
+  routes.get(
+    "/newsletter",
+    {
+      preHandler: [app.authenticate],
+      schema: {
+        tags: ["communications"],
+        security: [{ bearerAuth: [] }],
+        response: {
+          200: newsletterSubscriptionsListResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema
+        }
+      }
+    },
+    (request) => communicationController.listNewsletterSubscriptions(request)
+  );
+}

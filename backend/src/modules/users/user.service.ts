@@ -1,11 +1,14 @@
-import type { PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import { AppError } from "../../shared/app-error.js";
 import type { UserRole } from "../../shared/roles.js";
 import { toPublicUser } from "./user.mapper.js";
-import type { updateProfileBodySchema } from "./user.schemas.js";
-import type { z } from "zod";
+import type { UpdateProfileInput } from "./user.schemas.js";
 
-type UpdateProfileInput = z.infer<typeof updateProfileBodySchema>;
+function normalizeNullableText(value?: string | null) {
+  const normalizedValue = value?.trim();
+
+  return normalizedValue ? normalizedValue : null;
+}
 
 export class UserService {
   constructor(private readonly prisma: PrismaClient) {}
@@ -31,24 +34,41 @@ export class UserService {
   }
 
   async updateProfile(id: string, input: UpdateProfileInput) {
-    const user = await this.prisma.user.update({
-      where: { id },
-      data: {
-        name: input.name,
-        bio: input.bio ?? null,
-        institution: input.institution ?? null
-      }
-    });
+    try {
+      const user = await this.prisma.user.update({
+        where: { id },
+        data: {
+          name: input.name,
+          bio: normalizeNullableText(input.bio),
+          institution: normalizeNullableText(input.institution),
+          avatarUrl: normalizeNullableText(input.avatarUrl)
+        }
+      });
 
-    return toPublicUser(user);
+      return toPublicUser(user);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+        throw new AppError(404, "Utilizador não encontrado.");
+      }
+
+      throw error;
+    }
   }
 
   async updateRole(id: string, role: UserRole) {
-    const user = await this.prisma.user.update({
-      where: { id },
-      data: { role }
-    });
+    try {
+      const user = await this.prisma.user.update({
+        where: { id },
+        data: { role }
+      });
 
-    return toPublicUser(user);
+      return toPublicUser(user);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+        throw new AppError(404, "Utilizador não encontrado.");
+      }
+
+      throw error;
+    }
   }
 }

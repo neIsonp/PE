@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
-import { AppError } from "../../shared/app-error.js";
 import { errorResponseSchema } from "../../shared/zod.js";
+import { UserController } from "./user.controller.js";
 import { UserService } from "./user.service.js";
 import {
   updateProfileBodySchema,
@@ -13,6 +13,8 @@ import {
 
 export async function userRoutes(app: FastifyInstance) {
   const routes = app.withTypeProvider<ZodTypeProvider>();
+  const userService = new UserService(app.prisma);
+  const userController = new UserController(userService);
 
   routes.get(
     "/me",
@@ -27,12 +29,7 @@ export async function userRoutes(app: FastifyInstance) {
         }
       }
     },
-    async (request) => {
-      const service = new UserService(app.prisma);
-      const user = await service.getUserById(request.user.sub);
-
-      return { user };
-    }
+    (request) => userController.getMe(request)
   );
 
   routes.put(
@@ -50,12 +47,7 @@ export async function userRoutes(app: FastifyInstance) {
         }
       }
     },
-    async (request) => {
-      const service = new UserService(app.prisma);
-      const user = await service.updateProfile(request.user.sub, request.body);
-
-      return { user };
-    }
+    (request) => userController.updateMe(request)
   );
 
   routes.get(
@@ -72,16 +64,7 @@ export async function userRoutes(app: FastifyInstance) {
         }
       }
     },
-    async (request) => {
-      if (request.user.role !== "ADMIN") {
-        throw new AppError(403, "Apenas administradores podem listar utilizadores.");
-      }
-
-      const service = new UserService(app.prisma);
-      const users = await service.listUsers();
-
-      return { users };
-    }
+    (request) => userController.listUsers(request)
   );
 
   routes.patch(
@@ -101,15 +84,6 @@ export async function userRoutes(app: FastifyInstance) {
         }
       }
     },
-    async (request) => {
-      if (request.user.role !== "ADMIN") {
-        throw new AppError(403, "Apenas administradores podem alterar permissões.");
-      }
-
-      const service = new UserService(app.prisma);
-      const user = await service.updateRole(request.params.id, request.body.role);
-
-      return { user };
-    }
+    (request) => userController.updateRole(request)
   );
 }

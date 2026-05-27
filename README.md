@@ -7,7 +7,7 @@ Refatorização e desenvolvimento da aplicação web do Centro Académico Clíni
 **Projeto Final - Tecnologias Web 2025/2026 | Grupo 6**
 
 - **Nelson Pacheco Ponte** — 2024109237
-- **Adriano Arruda** — número de aluno por preencher
+- **Adriano Furtado Arruda** — 2024111815
 - **David Cardoso** — número de aluno por preencher
 
 ## Tecnologias Escolhidas

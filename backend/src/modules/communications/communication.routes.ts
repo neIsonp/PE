@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
+import { env } from "../../config/env.js";
 import { errorResponseSchema } from "../../shared/zod.js";
 import { CommunicationController } from "./communication.controller.js";
 import { CommunicationService } from "./communication.service.js";
@@ -22,8 +23,8 @@ export async function communicationRoutes(app: FastifyInstance) {
     {
       config: {
         rateLimit: {
-          max: 10,
-          timeWindow: "1 minute"
+          max: env.PUBLIC_FORM_RATE_LIMIT_MAX,
+          timeWindow: env.RATE_LIMIT_WINDOW
         }
       },
       schema: {
@@ -60,8 +61,8 @@ export async function communicationRoutes(app: FastifyInstance) {
     {
       config: {
         rateLimit: {
-          max: 10,
-          timeWindow: "1 minute"
+          max: env.PUBLIC_FORM_RATE_LIMIT_MAX,
+          timeWindow: env.RATE_LIMIT_WINDOW
         }
       },
       schema: {

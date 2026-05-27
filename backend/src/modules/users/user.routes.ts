@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { errorResponseSchema } from "../../shared/zod.js";
+import { AuditService } from "../audit/audit.service.js";
 import { UserController } from "./user.controller.js";
 import { UserService } from "./user.service.js";
 import {
@@ -14,7 +15,8 @@ import {
 export async function userRoutes(app: FastifyInstance) {
   const routes = app.withTypeProvider<ZodTypeProvider>();
   const userService = new UserService(app.prisma);
-  const userController = new UserController(userService);
+  const auditService = new AuditService(app.prisma);
+  const userController = new UserController(userService, auditService);
 
   routes.get(
     "/me",

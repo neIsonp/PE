@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 const npmCommand = "npm";
 const dockerCommand = "docker";
 const defaultTestDatabaseUrl = "postgresql://caca:caca@localhost:5433/caca_test?schema=public";
-const databaseUrl = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL ?? defaultTestDatabaseUrl;
+const databaseUrl = process.env.TEST_DATABASE_URL ?? defaultTestDatabaseUrl;
 
 function run(command, args, options = {}) {
   const commandLine = [command, ...args]
@@ -16,12 +16,12 @@ function run(command, args, options = {}) {
     shell: process.platform === "win32"
   });
 
-  if (result.error) {
-    console.error(result.error.message);
+  if (result.error && !options.allowFailure) {
+    throw result.error;
   }
 
   if (result.status !== 0 && !options.allowFailure) {
-    process.exit(result.status ?? 1);
+    throw new Error(`${commandLine} failed with status ${result.status ?? 1}.`);
   }
 
   return result;

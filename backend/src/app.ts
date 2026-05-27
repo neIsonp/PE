@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import Fastify from "fastify";
+import Fastify, { type FastifyReply } from "fastify";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
@@ -12,7 +12,7 @@ import {
   validatorCompiler
 } from "fastify-type-provider-zod";
 import { Prisma } from "@prisma/client";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
 import { env } from "./config/env.js";
 import { authPlugin } from "./plugins/auth.js";
 import { prismaPlugin } from "./plugins/prisma.js";
@@ -24,6 +24,15 @@ import { AppError } from "./shared/app-error.js";
 
 const requestIdHeader = "x-request-id";
 const requestStartTimes = new WeakMap<object, number>();
+const liveResponseSchema = z.object({
+  status: z.literal("ok"),
+  service: z.string()
+});
+const readyResponseSchema = z.object({
+  status: z.enum(["ok", "error"]),
+  service: z.string(),
+  database: z.enum(["ok", "unavailable"])
+});
 
 export async function buildApp() {
   const app = Fastify({
@@ -44,8 +53,8 @@ export async function buildApp() {
     credentials: true
   });
   await app.register(rateLimit, {
-    max: 120,
-    timeWindow: "1 minute"
+    max: env.RATE_LIMIT_MAX,
+    timeWindow: env.RATE_LIMIT_WINDOW
   });
   await app.register(swagger, {
     openapi: {
@@ -95,23 +104,67 @@ export async function buildApp() {
     );
   });
 
-  app.get("/health", async (_request, reply) => {
+  app.get(
+    "/live",
+    {
+      schema: {
+        tags: ["system"],
+        response: {
+          200: liveResponseSchema
+        }
+      }
+    },
+    async () => ({
+      status: "ok" as const,
+      service: "caca-backend"
+    })
+  );
+
+  async function checkReadiness(reply: FastifyReply) {
     try {
       await app.prisma.$queryRaw`SELECT 1`;
 
       return {
-        status: "ok",
+        status: "ok" as const,
         service: "caca-backend",
-        database: "ok"
+        database: "ok" as const
       };
     } catch {
       return reply.status(503).send({
-        status: "error",
+        status: "error" as const,
         service: "caca-backend",
-        database: "unavailable"
+        database: "unavailable" as const
       });
     }
-  });
+  }
+
+  app.get(
+    "/ready",
+    {
+      schema: {
+        tags: ["system"],
+        response: {
+          200: readyResponseSchema,
+          503: readyResponseSchema
+        }
+      }
+    },
+    async (_request, reply) => checkReadiness(reply)
+  );
+
+  app.get(
+    "/health",
+    {
+      schema: {
+        tags: ["system"],
+        response: {
+          200: readyResponseSchema,
+          503: readyResponseSchema
+        }
+      }
+    },
+    async (_request, reply) => checkReadiness(reply)
+  );
 
   await app.register(authRoutes, { prefix: "/api/auth" });
   await app.register(userRoutes, { prefix: "/api/users" });

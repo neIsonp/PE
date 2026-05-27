@@ -1,6 +1,8 @@
+import { AuditAction } from "@prisma/client";
 import type { FastifyRequest } from "fastify";
 import { AppError } from "../../shared/app-error.js";
 import { assertRole } from "../../shared/authorization.js";
+import { getAuditRequestContext, type AuditService } from "../audit/audit.service.js";
 import type { UserService } from "./user.service.js";
 import type { UpdateProfileInput, UpdateRoleInput, UserIdParams } from "./user.schemas.js";
 
@@ -8,7 +10,10 @@ type UpdateProfileRequest = FastifyRequest<{ Body: UpdateProfileInput }>;
 type UpdateRoleRequest = FastifyRequest<{ Params: UserIdParams; Body: UpdateRoleInput }>;
 
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly auditService: AuditService
+  ) {}
 
   async getMe(request: FastifyRequest) {
     const user = await this.userService.getUserById(request.user.sub);
@@ -38,6 +43,17 @@ export class UserController {
     }
 
     const user = await this.userService.updateRole(request.params.id, request.body.role);
+
+    await this.auditService.record(AuditAction.USER_ROLE_UPDATED, {
+      actorId: request.user.sub,
+      actorEmail: request.user.email,
+      targetId: user.id,
+      targetType: "USER",
+      metadata: {
+        newRole: user.role
+      },
+      ...getAuditRequestContext(request)
+    });
 
     return { user };
   }

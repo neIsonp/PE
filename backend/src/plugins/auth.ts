@@ -28,7 +28,7 @@ export const authPlugin = fp(async (app: FastifyInstance) => {
   await app.register(fastifyJwt, {
     secret: env.JWT_SECRET,
     sign: {
-      expiresIn: "7d"
+      expiresIn: env.JWT_EXPIRES_IN
     }
   });
 
@@ -38,5 +38,24 @@ export const authPlugin = fp(async (app: FastifyInstance) => {
     } catch {
       throw new AppError(401, "Sessão inválida ou expirada.");
     }
+
+    const user = await app.prisma.user.findUnique({
+      where: { id: request.user.sub },
+      select: {
+        id: true,
+        email: true,
+        role: true
+      }
+    });
+
+    if (!user) {
+      throw new AppError(401, "Sessão inválida ou expirada.");
+    }
+
+    request.user = {
+      sub: user.id,
+      email: user.email,
+      role: user.role
+    };
   });
 });

@@ -25,7 +25,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/node_modules ./node_modules
 COPY package.json package-lock.json ./
 COPY backend/package.json backend/package.json
 COPY --from=builder /app/backend/dist backend/dist
@@ -33,4 +33,4 @@ COPY --from=builder /app/backend/prisma backend/prisma
 
 EXPOSE 3333
 
-CMD ["sh", "-c", "npm run db:push --workspace backend && npm run db:seed --workspace backend && npm run start --workspace backend"]
+CMD ["sh", "-c", "npm run db:migrate --workspace backend && npm run db:seed --workspace backend && npm run start --workspace backend"]

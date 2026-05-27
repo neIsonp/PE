@@ -38,11 +38,13 @@ Refatorização e desenvolvimento da aplicação web do Centro Académico Clíni
 .
 ├── backend/
 │   ├── prisma/
-│   │   ├── schema.prisma       # Modelos User, Event, ContactMessage e Newsletter
+│   │   ├── migrations/         # Migrações versionadas PostgreSQL
+│   │   ├── schema.prisma       # Modelos User, Event, ContactMessage, Newsletter e AuditLog
 │   │   └── seed.ts             # Administrador, eventos e newsletter iniciais
 │   └── src/
 │       ├── config/             # Validação de variáveis de ambiente
 │       ├── modules/
+│       │   ├── audit/          # Registo de ações críticas
 │       │   ├── auth/           # Autenticação
 │       │   ├── users/          # Utilizadores, perfis e permissões
 │       │   ├── events/         # CRUD de eventos
@@ -113,7 +115,9 @@ flowchart LR
 - Alteração de permissões protegida para administradores.
 - Painel `/admin` para gerir permissões, consultar mensagens de contacto e subscrições.
 - Página de erro 404 e estado global de loading.
-- Healthcheck `/health` com verificação real da ligação à base de dados.
+- Healthchecks `/live`, `/ready` e `/health` com verificação real da ligação à base de dados.
+- Auditoria interna para registo, login, falhas de login, alterações de permissões e CRUD de eventos.
+- Migrações Prisma versionadas para evolução controlada do schema PostgreSQL.
 - Documentação Swagger disponível em `/docs`.
 
 ## Como Correr a Aplicação
@@ -122,6 +126,7 @@ flowchart LR
 
 - Node.js instalado.
 - npm instalado.
+- Docker Desktop instalado, recomendado para PostgreSQL local e execução com Docker Compose.
 
 ### Instalação
 
@@ -153,17 +158,26 @@ Iniciar PostgreSQL via Docker, se não existir uma instância local ativa:
 docker compose up -d postgres
 ```
 
+Se já existir um volume Docker antigo criado antes das migrações, pode ser necessário reiniciar a base local:
+
+```bash
+docker compose down -v
+docker compose up -d postgres
+```
+
 Gerar o Prisma Client:
 
 ```bash
 npm run db:generate --workspace backend
 ```
 
-Criar/sincronizar a base de dados:
+Aplicar migrações na base de dados:
 
 ```bash
-npm run db:push --workspace backend
+npm run db:migrate --workspace backend
 ```
+
+Durante desenvolvimento, `npm run db:push --workspace backend` continua disponível para sincronização rápida do schema.
 
 Inserir o utilizador administrador inicial:
 
@@ -200,6 +214,7 @@ npm run build            # Build completo
 npm run lint             # Typecheck backend e frontend
 npm run test             # Testes backend + frontend
 npm run check            # Lint + testes + build
+npm run db:migrate       # Aplica migrações Prisma
 npm run db:studio        # Prisma Studio
 npm run docker:up        # PostgreSQL + backend + frontend em containers
 npm run docker:down      # Para os containers Docker
@@ -221,6 +236,9 @@ npm run docker:down      # Para os containers Docker
 - `GET /api/contact` — lista mensagens, apenas para `ADMIN`.
 - `POST /api/newsletter` — regista subscrição da newsletter.
 - `GET /api/newsletter` — lista subscrições, apenas para `ADMIN`.
+- `GET /live` — confirma que o processo HTTP está ativo.
+- `GET /ready` — confirma que a API está pronta e ligada à base de dados.
+- `GET /health` — endpoint compatível de saúde com verificação da base de dados.
 
 ## Decisões de Design e Implementação
 
@@ -233,6 +251,9 @@ npm run docker:down      # Para os containers Docker
 - A validação foi centralizada com Zod para reduzir duplicação e rejeitar dados inválidos antes da lógica de negócio.
 - O Prisma foi escolhido para abstrair o acesso relacional, tipar consultas e manter o backend preparado para evoluções futuras com baixo impacto.
 - O PostgreSQL foi adotado como base relacional principal, mantendo o Prisma como camada de acesso e modelação.
+- O schema usa enums Prisma para permissões e ações auditáveis, reduzindo strings livres no domínio.
+- As migrações Prisma ficam versionadas para permitir instalação previsível em ambientes limpos e CI.
+- A auditoria foi adicionada como módulo interno para rastrear operações críticas sem alterar a experiência do frontend.
 - Os testes foram divididos entre unidade e integração: schemas/rotas no backend e utilitários críticos no frontend.
 - O projeto inclui pipeline GitHub Actions para instalar dependências, gerar Prisma Client, correr lint, testes e build a cada push ou pull request.
 
@@ -271,13 +292,15 @@ npm run docker:down      # Para os containers Docker
 
 - Passwords nunca são guardadas em texto simples; são protegidas com bcrypt.
 - Autenticação baseada em JWT.
-- Rotas protegidas verificam token antes de devolver dados sensíveis.
+- Rotas protegidas verificam o token e confirmam o utilizador atual na base de dados antes de devolver dados sensíveis.
 - O frontend redireciona para login quando o perfil exige sessão válida.
 - Permissões `ADMIN`/`USER` aplicadas em endpoints administrativos.
 - Validação de input com Zod no backend.
 - Proteção HTTP com Helmet.
 - CORS configurado para a origem do frontend.
 - Rate limit global e limites mais apertados nas rotas de autenticação, contacto e newsletter.
+- Expiração de JWT e limites de rate limit são configuráveis por variáveis de ambiente.
+- Ações críticas ficam registadas em `audit_logs` para rastreabilidade administrativa.
 - Conteúdo dinâmico dos popups do mapa é escapado antes de ser injetado.
 - Administradores não conseguem remover a própria permissão por acidente.
 
@@ -308,6 +331,7 @@ npm run lint
 npm run test
 npm run build
 npm run db:generate
+npm run db:migrate
 ```
 
 Cobertura funcional validada:

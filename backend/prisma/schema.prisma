@@ -7,19 +7,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum AuditAction {
+  AUTH_REGISTER
+  AUTH_LOGIN_SUCCESS
+  AUTH_LOGIN_FAILURE
+  USER_ROLE_UPDATED
+  EVENT_CREATED
+  EVENT_UPDATED
+  EVENT_DELETED
+}
+
 model User {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   name         String
-  email        String   @unique
+  email        String     @unique
   passwordHash String
-  role         String   @default("USER")
+  role         UserRole   @default(USER)
   bio          String?
   institution  String?
   avatarUrl    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
   events       Event[]
+  auditLogs    AuditLog[] @relation("AuditActor")
 
+  @@index([role, createdAt])
   @@map("users")
 }
 
@@ -35,6 +52,8 @@ model Event {
   createdById String?
   createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
+  @@index([date, time])
+  @@index([createdById, createdAt])
   @@map("events")
 }
 
@@ -47,6 +66,7 @@ model ContactMessage {
   message   String
   createdAt DateTime @default(now())
 
+  @@index([createdAt])
   @@map("contact_messages")
 }
 
@@ -55,5 +75,25 @@ model NewsletterSubscription {
   email     String   @unique
   createdAt DateTime @default(now())
 
+  @@index([createdAt])
   @@map("newsletter_subscriptions")
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  action     AuditAction
+  actorId    String?
+  actorEmail String?
+  actor      User?       @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  targetId   String?
+  targetType String?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime    @default(now())
+
+  @@index([action, createdAt])
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
+  @@map("audit_logs")
 }

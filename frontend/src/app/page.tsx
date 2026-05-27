@@ -23,7 +23,7 @@ export default function HomePage() {
         </div>
       </noscript>
       <Header active="home" />
-      <main>
+      <main id="conteudo-principal">
         <Hero />
         <ResearchAreas />
         <NewsFeed />

@@ -57,6 +57,13 @@
   text-decoration: none;
 }
 
+.auth-card__hint {
+  display: block;
+  margin-top: 8px;
+  color: var(--cinza-500);
+  font-size: 0.85rem;
+}
+
 .form-feedback {
   margin-top: 16px;
   padding: 12px 14px;
@@ -74,10 +81,50 @@
   color: #b91c1c;
 }
 
+.form-feedback--info {
+  background: var(--azul-100);
+  color: var(--azul-700);
+}
+
+.form-feedback a {
+  color: inherit;
+  font-weight: 800;
+}
+
+.c-form fieldset {
+  border: 0;
+  margin: 0;
+  min-inline-size: 0;
+  padding: 0;
+}
+
+.c-form fieldset:disabled {
+  opacity: 0.72;
+}
+
 .profile-card__meta {
   display: grid;
   gap: 12px;
   margin: 24px 0;
+}
+
+.profile-card__avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--azul-100);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 20px;
+}
+
+.profile-card__avatar--placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--azul-100);
+  color: var(--azul-700);
+  font-size: 2rem;
+  font-weight: 800;
 }
 
 .profile-card__meta-item {
@@ -91,6 +138,73 @@
 
 .profile-card__meta-item strong {
   color: var(--azul-900);
+}
+
+.admin-shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: var(--branco);
+  border: 1px solid var(--cinza-200);
+  border-radius: var(--radius-xl);
+  padding: 40px;
+  box-shadow: var(--shadow-lg);
+}
+
+.admin-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-panel {
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px solid var(--cinza-200);
+}
+
+.admin-panel__title {
+  color: var(--azul-900);
+  font-size: 1.35rem;
+  margin-bottom: 18px;
+}
+
+.admin-table,
+.admin-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-row,
+.admin-card {
+  background: var(--cinza-50);
+  border: 1px solid var(--cinza-200);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+}
+
+.admin-row {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  gap: 18px;
+  align-items: center;
+}
+
+.admin-row div,
+.admin-card {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-row span,
+.admin-card span,
+.admin-card p {
+  color: var(--cinza-500);
+}
+
+@media (max-width: 720px) {
+  .admin-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .status-badge {

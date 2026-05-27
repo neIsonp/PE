@@ -1,14 +1,33 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { seedEvents } from "@/data/events";
 import { EventsMap } from "@/components/map/EventsMap";
+import { fetchEvents } from "@/lib/api-client";
+import type { CacaEvent } from "@/types/events";
 
 export function MapEventsSection() {
+  const [events, setEvents] = useState<CacaEvent[]>(seedEvents);
+
+  useEffect(() => {
+    fetchEvents()
+      .then((response) => {
+        if (response.events.length > 0) {
+          setEvents(response.events);
+        }
+      })
+      .catch(() => {
+        setEvents(seedEvents);
+      });
+  }, []);
+
   return (
     <section id="mapa-destaques" className="section map-events-section">
       <div className="container">
         <div className="map-events-layout">
           <div className="map-events-card">
-            <EventsMap events={seedEvents} />
+            <EventsMap events={events} />
           </div>
 
           <div className="map-events-info">

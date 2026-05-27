@@ -1,14 +1,13 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-
-const storageKey = "caca_newsletter";
+import { subscribeNewsletter } from "@/lib/api-client";
 
 export function NewsletterSection() {
   const [email, setEmail] = useState("");
   const [feedback, setFeedback] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -16,16 +15,13 @@ export function NewsletterSection() {
       return;
     }
 
-    const subscriptions = JSON.parse(localStorage.getItem(storageKey) ?? "[]") as string[];
-
-    if (subscriptions.includes(email.toLowerCase())) {
-      setFeedback("Este email já está subscrito.");
-      return;
+    try {
+      await subscribeNewsletter(email);
+      setFeedback("Subscrição registada com sucesso na API.");
+      setEmail("");
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Não foi possível subscrever.");
     }
-
-    localStorage.setItem(storageKey, JSON.stringify([...subscriptions, email.toLowerCase()]));
-    setFeedback("Subscrição registada com sucesso.");
-    setEmail("");
   }
 
   return (
@@ -58,7 +54,7 @@ export function NewsletterSection() {
               Subscrever →
             </button>
           </div>
-          <div className="newsletter-new-disclaimer" id="newsletter-feedback" role="status">
+          <div className="newsletter-new-disclaimer" id="newsletter-feedback" role="status" aria-live="polite">
             {feedback}
           </div>
         </form>

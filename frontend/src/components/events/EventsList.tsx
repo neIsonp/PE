@@ -3,11 +3,12 @@ import type { CacaEvent } from "@/types/events";
 
 type EventsListProps = {
   events: CacaEvent[];
+  canManage?: boolean;
   onEdit: (event: CacaEvent) => void;
   onDelete: (id: string) => void;
 };
 
-export function EventsList({ events, onEdit, onDelete }: EventsListProps) {
+export function EventsList({ events, canManage = false, onEdit, onDelete }: EventsListProps) {
   if (events.length === 0) {
     return (
       <div className="research" id="events-list">
@@ -39,24 +40,26 @@ export function EventsList({ events, onEdit, onDelete }: EventsListProps) {
               </p>
               {event.description ? <p className="research__card-text">{event.description}</p> : null}
             </div>
-            <div className="event-actions">
-              <button
-                type="button"
-                onClick={() => onEdit(event)}
-                className="btn btn--outline"
-                style={{ fontSize: "0.85rem", padding: "8px 16px" }}
-              >
-                Editar
-              </button>
-              <button
-                type="button"
-                onClick={() => onDelete(event.id)}
-                className="btn"
-                style={{ background: "#eef2f6", color: "#e11d48", fontSize: "0.85rem", padding: "8px 16px" }}
-              >
-                Eliminar
-              </button>
-            </div>
+            {canManage ? (
+              <div className="event-actions">
+                <button
+                  type="button"
+                  onClick={() => onEdit(event)}
+                  className="btn btn--outline"
+                  style={{ fontSize: "0.85rem", padding: "8px 16px" }}
+                >
+                  Editar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete(event.id)}
+                  className="btn"
+                  style={{ background: "#eef2f6", color: "#e11d48", fontSize: "0.85rem", padding: "8px 16px" }}
+                >
+                  Eliminar
+                </button>
+              </div>
+            ) : null}
           </article>
         );
       })}

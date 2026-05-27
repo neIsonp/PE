@@ -54,7 +54,12 @@ export default function RootLayout({
           href="https://cdn-uicons.flaticon.com/2.1.0/uicons-regular-rounded/css/uicons-regular-rounded.css"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <a href="#conteudo-principal" className="skip-to-content">
+          Saltar para o conteúdo principal
+        </a>
+        {children}
+      </body>
     </html>
   );
 }

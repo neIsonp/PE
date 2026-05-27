@@ -25,9 +25,9 @@ export function EventsMap({ events, mapId = "map" }: EventsMapProps) {
       }
 
       const DefaultIcon = L.icon({
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        iconUrl: "/leaflet/marker-icon.png",
+        iconRetinaUrl: "/leaflet/marker-icon-2x.png",
+        shadowUrl: "/leaflet/marker-shadow.png",
         iconSize: [25, 41],
         iconAnchor: [12, 41]
       });
@@ -65,5 +65,5 @@ export function EventsMap({ events, mapId = "map" }: EventsMapProps) {
     };
   }, [events, mapId]);
 
-  return <div id={mapId} aria-label="Mapa de eventos nos Açores" />;
+  return <div id={mapId} role="region" tabIndex={0} aria-label="Mapa de eventos nos Açores" />;
 }

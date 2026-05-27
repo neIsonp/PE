@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { submitContactMessage } from "@/lib/api-client";
 
 type Feedback = {
   type: "success" | "error";
@@ -11,10 +12,13 @@ export function ContactSection() {
   const [message, setMessage] = useState("");
   const [feedback, setFeedback] = useState<Feedback>(null);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const firstName = String(form.get("first-name") ?? "");
+    const lastName = String(form.get("last-name") ?? "");
     const email = String(form.get("email") ?? "");
+    const countryCode = String(form.get("country-code") ?? "");
     const phone = String(form.get("phone") ?? "");
 
     if (!email.includes("@") || phone.replace(/\D/g, "").length < 6) {
@@ -25,12 +29,26 @@ export function ContactSection() {
       return;
     }
 
-    setFeedback({
-      type: "success",
-      message: "Mensagem registada localmente. A integração real de contacto fica pronta para ligar à API."
-    });
-    event.currentTarget.reset();
-    setMessage("");
+    try {
+      await submitContactMessage({
+        firstName,
+        lastName,
+        email,
+        phone: `${countryCode} ${phone}`,
+        message
+      });
+      setFeedback({
+        type: "success",
+        message: "Mensagem enviada e registada na API."
+      });
+      event.currentTarget.reset();
+      setMessage("");
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: error instanceof Error ? error.message : "Não foi possível enviar a mensagem."
+      });
+    }
   }
 
   return (
@@ -166,12 +184,13 @@ export function ContactSection() {
                     name="message"
                     className="c-form__input c-form__textarea"
                     placeholder="Como podemos ajudar?"
-                    maxLength={120}
+                    minLength={10}
+                    maxLength={500}
                     value={message}
                     onChange={(event) => setMessage(event.target.value)}
                     required
                   />
-                  <span className="c-form__char-count">{message.length}/120</span>
+                  <span className="c-form__char-count">{message.length}/500</span>
                 </div>
               </div>
 
@@ -180,7 +199,9 @@ export function ContactSection() {
               </button>
 
               {feedback ? (
-                <p className={`form-feedback form-feedback--${feedback.type}`}>{feedback.message}</p>
+                <p className={`form-feedback form-feedback--${feedback.type}`} role="status" aria-live="polite">
+                  {feedback.message}
+                </p>
               ) : null}
 
               <p className="c-form__terms">

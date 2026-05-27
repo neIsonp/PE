@@ -12,5 +12,8 @@ export type CacaEvent = {
   date: string;
   time: string;
   location: string;
-  description: string;
+  description: string | null;
+  createdById?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 };

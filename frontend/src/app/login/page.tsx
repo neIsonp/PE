@@ -11,7 +11,7 @@ export default function LoginPage() {
   return (
     <>
       <Header active="login" />
-      <main className="auth-page">
+      <main id="conteudo-principal" className="auth-page">
         <AuthForm mode="login" />
       </main>
     </>

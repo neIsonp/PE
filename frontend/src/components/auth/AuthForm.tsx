@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 import { loginUser, registerUser } from "@/lib/api-client";
 import { saveSession } from "@/lib/storage";
 
@@ -21,9 +21,21 @@ const loginSchema = z.object({
   password: z.string().min(1, "Indique a palavra-passe.")
 });
 
+const strongPasswordSchema = z
+  .string()
+  .min(8, "A palavra-passe deve ter pelo menos 8 caracteres.")
+  .regex(/[A-Z]/, "A palavra-passe deve incluir uma maiúscula.")
+  .regex(/[a-z]/, "A palavra-passe deve incluir uma minúscula.")
+  .regex(/[0-9]/, "A palavra-passe deve incluir um número.");
+
 const registerSchema = loginSchema.extend({
   name: z.string().trim().min(2, "Indique o seu nome."),
-  institution: z.string().trim().optional()
+  password: strongPasswordSchema,
+  institution: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => value || undefined)
 });
 
 export function AuthForm({ mode }: AuthFormProps) {
@@ -50,9 +62,16 @@ export function AuthForm({ mode }: AuthFormProps) {
       });
       router.push("/perfil");
     } catch (error) {
+      const message =
+        error instanceof ZodError
+          ? (error.issues[0]?.message ?? "Verifique os dados introduzidos.")
+          : error instanceof Error
+            ? error.message
+            : "Não foi possível autenticar.";
+
       setFeedback({
         type: "error",
-        message: error instanceof Error ? error.message : "Não foi possível autenticar."
+        message
       });
     } finally {
       setIsSubmitting(false);
@@ -111,14 +130,21 @@ export function AuthForm({ mode }: AuthFormProps) {
             minLength={isRegister ? 8 : 1}
             required
           />
+          {isRegister ? (
+            <small className="auth-card__hint">
+              Mínimo 8 caracteres, com maiúscula, minúscula e número.
+            </small>
+          ) : null}
         </div>
 
-        <button type="submit" className="c-form__submit" disabled={isSubmitting}>
+        <button type="submit" className="c-form__submit" disabled={isSubmitting} aria-busy={isSubmitting}>
           {isSubmitting ? "A processar..." : isRegister ? "Criar conta" : "Entrar"}
         </button>
 
         {feedback ? (
-          <p className={`form-feedback form-feedback--${feedback.type}`}>{feedback.message}</p>
+          <p className={`form-feedback form-feedback--${feedback.type}`} role="status" aria-live="polite">
+            {feedback.message}
+          </p>
         ) : null}
       </form>
 

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type HeaderProps = {
-  active?: "home" | "events" | "login" | "profile";
+  active?: "home" | "events" | "login" | "profile" | "admin";
 };
 
 const baseLinks = [
@@ -15,7 +15,8 @@ const baseLinks = [
   { href: "/#contactos", label: "Contactos" },
   { href: "/eventos", label: "Eventos", key: "events" },
   { href: "/login", label: "Entrar", key: "login" },
-  { href: "/perfil", label: "Perfil", key: "profile" }
+  { href: "/perfil", label: "Perfil", key: "profile" },
+  { href: "/admin", label: "Admin", key: "admin" }
 ] as const;
 
 export function Header({ active = "home" }: HeaderProps) {
@@ -56,8 +57,8 @@ export function Header({ active = "home" }: HeaderProps) {
           aria-label="Navegação principal"
         >
           {baseLinks.map((link) => {
-            const key = "key" in link ? link.key : "home";
-            const isActive = active === key;
+            const key = "key" in link ? link.key : undefined;
+            const isActive = key ? active === key : false;
 
             return (
               <Link

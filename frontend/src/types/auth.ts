@@ -7,6 +7,7 @@ export type PublicUser = {
   role: UserRole;
   bio: string | null;
   institution: string | null;
+  avatarUrl: string | null;
   createdAt: string;
   updatedAt: string;
 };

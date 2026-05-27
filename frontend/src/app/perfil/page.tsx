@@ -11,7 +11,7 @@ export default function PerfilPage() {
   return (
     <>
       <Header active="profile" />
-      <main className="auth-page">
+      <main id="conteudo-principal" className="auth-page">
         <ProfileClient />
       </main>
     </>

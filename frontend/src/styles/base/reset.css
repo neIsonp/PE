@@ -1,0 +1,96 @@
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --azul-900: #040e2e;
+  --azul-800: #061d60;
+  --azul-700: #0a2d8a;
+  --azul-600: #1240b0;
+  --azul-500: #1e56d0;
+  --azul-400: #4a7ef5;
+  --azul-300: #7da4f8;
+  --azul-200: #b0c8fb;
+  --azul-100: #e0ebfe;
+
+  --verde-500: #2ecc71;
+  --verde-600: #27ae60;
+  --verde-400: #58d68d;
+  --verde-300: #82e0a8;
+  --verde-100: #d5f5e3;
+
+  --cinza-50: #f8f9fc;
+  --cinza-100: #f0f2f7;
+  --cinza-200: #e2e6ef;
+  --cinza-300: #c8ceda;
+  --cinza-400: #596172;
+  --cinza-500: #444c5a;
+  --cinza-600: #303744;
+  --cinza-700: #374151;
+  --cinza-800: #1f2937;
+  --cinza-900: #111827;
+
+  --branco: #ffffff;
+  --preto: #0a0a0a;
+
+  --grad-primary: var(--azul-800);
+  --grad-accent: var(--azul-600);
+  --grad-hero: rgba(4, 14, 46, 0.7);
+  --grad-newsletter: var(--azul-800);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 0 40px rgba(30, 86, 208, 0.15);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 200ms;
+  --duration-normal: 350ms;
+  --duration-slow: 500ms;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--cinza-800);
+  background-color: var(--cinza-50);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  width: 100%;
+}
+
+::selection {
+  background-color: var(--azul-200);
+  color: var(--azul-900);
+}
+
+:focus-visible {
+  outline: 3px solid var(--azul-400);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}

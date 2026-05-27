@@ -1,0 +1,97 @@
+#parceiros {
+  position: relative;
+  background: var(--branco); /* Light elegant background */
+  overflow: hidden;
+}
+
+#parceiros::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: radial-gradient(rgba(30, 86, 208, 0.05) 1.5px, transparent 1.5px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(circle at center, black 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at center, black 20%, transparent 80%);
+  z-index: 0;
+}
+
+#parceiros .container {
+  position: relative;
+  z-index: 1;
+}
+
+#parceiros .section__title {
+  color: var(--azul-900);
+}
+
+#parceiros .section__description {
+  color: var(--cinza-500);
+}
+
+.partners {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 48px;
+}
+
+.partners__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: var(--branco);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border-radius: var(--radius-xl);
+  padding: 40px 24px;
+  width: 200px;
+  text-align: center;
+  transition: all var(--duration-normal) var(--ease-spring);
+  cursor: default;
+}
+
+.partners__item:hover {
+  transform: translateY(-8px);
+  border-color: var(--azul-200);
+  box-shadow: 0 16px 40px rgba(30, 86, 208, 0.08);
+}
+
+.partners__item i {
+  font-size: 48px !important;
+  color: var(--azul-500) !important;
+  margin-bottom: 0 !important;
+  transition: transform var(--duration-normal) var(--ease-out);
+}
+
+.partners__item:hover i {
+  transform: scale(1.15) rotate(5deg);
+  color: var(--azul-600) !important;
+}
+
+.partners__name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--azul-900);
+  line-height: 1.4;
+  letter-spacing: 0.2px;
+}
+
+@media (max-width: 768px) {
+  .partners {
+    gap: 16px;
+  }
+  .partners__item {
+    width: 45%;
+    padding: 32px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .partners__item {
+    width: 100%;
+  }
+}

@@ -1,0 +1,75 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 12px 28px;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-spring);
+  text-decoration: none;
+  line-height: 1;
+}
+
+.btn--primary {
+  background: var(--grad-accent);
+  color: var(--branco);
+  box-shadow: 0 4px 16px rgba(30, 86, 208, 0.25);
+}
+
+.btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(30, 86, 208, 0.35);
+}
+
+.btn--outline {
+  background: transparent;
+  color: var(--azul-600);
+  border: 2px solid var(--azul-200);
+}
+
+.btn--outline:hover {
+  background: var(--azul-100);
+  border-color: var(--azul-400);
+  transform: translateY(-2px);
+}
+
+.btn--large {
+  padding: 16px 36px;
+  font-size: 16px;
+}
+
+.btn--contact {
+  background: var(--azul-600);
+  color: var(--branco);
+  border-radius: var(--radius-full);
+  padding: 10px 24px;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  transition: all var(--duration-fast) ease;
+}
+
+.btn--contact:hover {
+  background: var(--azul-700);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(18, 64, 176, 0.25);
+}
+
+.btn--pill {
+  border-radius: var(--radius-full);
+  padding: 16px 32px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.btn__chevron {
+  transition: transform var(--duration-normal) var(--ease-out);
+}
+
+.btn--expanded .btn__chevron {
+  transform: rotate(180deg);
+}

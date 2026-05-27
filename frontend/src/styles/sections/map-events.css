@@ -1,0 +1,161 @@
+/* ==========================================================================
+   MAP EVENTS SECTION
+   Two-column layout: map card (left) + info text (right)
+   ========================================================================== */
+
+.map-events-section {
+    padding: 100px 0;
+}
+
+/* Layout */
+.map-events-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: start;
+    width: 100%;
+}
+
+/* Map Card */
+.map-events-card {
+    background: #fdfdfd;
+    border-radius: 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    min-height: 480px;
+}
+
+.map-events-card #map {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    height: 100% !important;
+    width: 100% !important;
+    border-radius: 0;
+    box-shadow: none;
+    z-index: 1;
+}
+
+/* Info Column */
+.map-events-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-right: 40px;
+}
+
+.map-events-info__label {
+    display: block;
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: #4a4a4a;
+    letter-spacing: 0;
+    margin-bottom: 12px;
+}
+
+.map-events-info__title {
+    font-family: var(--font-display, 'Inter', sans-serif);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #111;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 40px;
+}
+
+.map-events-info__subtitle {
+    font-family: var(--font-display, 'Inter', sans-serif);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #111;
+    margin-bottom: 12px;
+}
+
+.map-events-info__details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 32px;
+}
+
+.map-events-info__details p {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.map-events-info__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #111;
+    text-decoration: none;
+    transition: color 0.2s ease, gap 0.2s ease;
+    width: fit-content;
+}
+
+.map-events-info__link:hover {
+    color: var(--azul-500);
+    gap: 12px;
+}
+
+.map-events-info__link span {
+    font-size: 1.1rem;
+    transition: transform 0.2s ease;
+}
+
+.map-events-info__link:hover span {
+    transform: translateX(4px);
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 1024px) {
+    .map-events-layout {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .map-events-info {
+        padding-right: 0;
+    }
+
+    .map-events-info__title {
+        font-size: 2.2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .map-events-section {
+        padding: 60px 0;
+    }
+
+    .map-events-card #map {
+        height: 400px;
+    }
+
+    .map-events-info__title {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .map-events-card {
+        border-radius: 20px;
+    }
+
+    .map-events-card #map {
+        height: 340px;
+    }
+
+    .map-events-info__title {
+        font-size: 1.6rem;
+    }
+}

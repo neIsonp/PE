@@ -1,5 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { clearSession, getStoredUser, getToken, saveSession, updateStoredUser } from "./storage";
+import {
+  clearSession,
+  getStoredUser,
+  getToken,
+  getValidToken,
+  isTokenExpired,
+  saveSession,
+  updateStoredUser
+} from "./storage";
 import type { AuthResponse, PublicUser } from "@/types/auth";
 
 function createLocalStorageMock() {
@@ -28,6 +36,12 @@ const user: PublicUser = {
   updatedAt: new Date().toISOString()
 };
 
+function createToken(exp: number) {
+  const payload = btoa(JSON.stringify({ exp })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+
+  return `header.${payload}.signature`;
+}
+
 describe("storage", () => {
   beforeEach(() => {
     vi.stubGlobal("localStorage", createLocalStorageMock());
@@ -49,6 +63,16 @@ describe("storage", () => {
 
     clearSession();
     expect(getToken()).toBeNull();
+    expect(getStoredUser()).toBeNull();
+  });
+
+  it("limpa a sessão quando o token expirou", () => {
+    const token = createToken(Math.floor(Date.now() / 1000) - 60);
+
+    saveSession({ token, user });
+
+    expect(isTokenExpired(token)).toBe(true);
+    expect(getValidToken()).toBeNull();
     expect(getStoredUser()).toBeNull();
   });
 });

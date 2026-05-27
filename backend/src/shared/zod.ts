@@ -12,6 +12,7 @@ export const passwordSchema = z
 
 export const errorResponseSchema = z.object({
   message: z.string(),
+  requestId: z.string().optional(),
   details: z.unknown().optional()
 });
 

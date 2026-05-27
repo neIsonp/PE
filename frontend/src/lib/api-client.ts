@@ -1,11 +1,43 @@
 import { apiBaseUrl } from "./config";
-import { getToken } from "./storage";
+import { clearSession, getValidToken } from "./storage";
 import type { AuthResponse, PublicUser } from "@/types/auth";
 import type { CacaEvent } from "@/types/events";
 
 type ApiErrorBody = {
   message?: string;
 };
+
+export class ApiClientError extends Error {
+  constructor(
+    message: string,
+    readonly status: number
+  ) {
+    super(message);
+    this.name = "ApiClientError";
+  }
+}
+
+function getAuthHeaders(message: string) {
+  const token = getValidToken();
+
+  if (!token) {
+    throw new ApiClientError(message, 401);
+  }
+
+  return {
+    Authorization: `Bearer ${token}`
+  };
+}
+
+async function parseError(response: Response, fallbackMessage: string) {
+  const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
+
+  if (response.status === 401) {
+    clearSession();
+  }
+
+  return new ApiClientError(body.message ?? fallbackMessage, response.status);
+}
 
 async function requestJson<T>(path: string, init?: RequestInit) {
   const response = await fetch(`${apiBaseUrl}${path}`, {
@@ -17,11 +49,23 @@ async function requestJson<T>(path: string, init?: RequestInit) {
   });
 
   if (!response.ok) {
-    const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
-    throw new Error(body.message ?? "Não foi possível comunicar com a API.");
+    throw await parseError(response, "Não foi possível comunicar com a API.");
   }
 
   return response.json() as Promise<T>;
+}
+
+async function requestVoid(path: string, init?: RequestInit) {
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    ...init,
+    headers: {
+      ...init?.headers
+    }
+  });
+
+  if (!response.ok) {
+    throw await parseError(response, "Não foi possível comunicar com a API.");
+  }
 }
 
 export function registerUser(input: {
@@ -44,16 +88,8 @@ export function loginUser(input: { email: string; password: string }) {
 }
 
 export function getCurrentUser() {
-  const token = getToken();
-
-  if (!token) {
-    throw new Error("Sessão não encontrada. Inicie sessão novamente.");
-  }
-
   return requestJson<{ user: PublicUser }>("/users/me", {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+    headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente.")
   });
 }
 
@@ -63,47 +99,23 @@ export function updateCurrentUser(input: {
   institution?: string | null;
   avatarUrl?: string | null;
 }) {
-  const token = getToken();
-
-  if (!token) {
-    throw new Error("Sessão não encontrada. Inicie sessão novamente.");
-  }
-
   return requestJson<{ user: PublicUser }>("/users/me", {
     method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`
-    },
+    headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente."),
     body: JSON.stringify(input)
   });
 }
 
 export function listUsers() {
-  const token = getToken();
-
-  if (!token) {
-    throw new Error("Sessão não encontrada. Inicie sessão novamente.");
-  }
-
   return requestJson<{ users: PublicUser[] }>("/users", {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+    headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente.")
   });
 }
 
 export function updateUserRole(id: string, role: PublicUser["role"]) {
-  const token = getToken();
-
-  if (!token) {
-    throw new Error("Sessão não encontrada. Inicie sessão novamente.");
-  }
-
   return requestJson<{ user: PublicUser }>(`/users/${id}/role`, {
     method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`
-    },
+    headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente."),
     body: JSON.stringify({ role })
   });
 }
@@ -113,54 +125,25 @@ export function fetchEvents() {
 }
 
 export function createEvent(input: Omit<CacaEvent, "id" | "createdAt" | "updatedAt" | "createdById">) {
-  const token = getToken();
-
-  if (!token) {
-    throw new Error("Inicie sessão para guardar eventos.");
-  }
-
   return requestJson<{ event: CacaEvent }>("/events", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`
-    },
+    headers: getAuthHeaders("Inicie sessão para guardar eventos."),
     body: JSON.stringify(input)
   });
 }
 
 export function updateEvent(id: string, input: Omit<CacaEvent, "id" | "createdAt" | "updatedAt" | "createdById">) {
-  const token = getToken();
-
-  if (!token) {
-    throw new Error("Inicie sessão para atualizar eventos.");
-  }
-
   return requestJson<{ event: CacaEvent }>(`/events/${id}`, {
     method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`
-    },
+    headers: getAuthHeaders("Inicie sessão para atualizar eventos."),
     body: JSON.stringify(input)
   });
 }
 
 export function deleteEvent(id: string) {
-  const token = getToken();
-
-  if (!token) {
-    throw new Error("Inicie sessão para eliminar eventos.");
-  }
-
-  return fetch(`${apiBaseUrl}/events/${id}`, {
+  return requestVoid(`/events/${id}`, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  }).then(async (response) => {
-    if (!response.ok) {
-      const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
-      throw new Error(body.message ?? "Não foi possível eliminar o evento.");
-    }
+    headers: getAuthHeaders("Inicie sessão para eliminar eventos.")
   });
 }
 
@@ -185,12 +168,6 @@ export function subscribeNewsletter(email: string) {
 }
 
 export function listContactMessages() {
-  const token = getToken();
-
-  if (!token) {
-    throw new Error("Sessão não encontrada. Inicie sessão novamente.");
-  }
-
   return requestJson<{
     messages: Array<{
       id: string;
@@ -202,24 +179,14 @@ export function listContactMessages() {
       createdAt: string;
     }>;
   }>("/contact", {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+    headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente.")
   });
 }
 
 export function listNewsletterSubscriptions() {
-  const token = getToken();
-
-  if (!token) {
-    throw new Error("Sessão não encontrada. Inicie sessão novamente.");
-  }
-
   return requestJson<{
     subscriptions: Array<{ id: string; email: string; createdAt: string }>;
   }>("/newsletter", {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+    headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente.")
   });
 }

@@ -2,7 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { clearSession, getStoredUser, getValidToken, sessionChangedEvent } from "@/lib/storage";
+import type { PublicUser } from "@/types/auth";
 
 type HeaderProps = {
   active?: "home" | "events" | "login" | "profile" | "admin";
@@ -13,13 +16,12 @@ const baseLinks = [
   { href: "/#parceiros", label: "Parceiros" },
   { href: "/#oportunidades", label: "Oportunidades" },
   { href: "/#contactos", label: "Contactos" },
-  { href: "/eventos", label: "Eventos", key: "events" },
-  { href: "/login", label: "Entrar", key: "login" },
-  { href: "/perfil", label: "Perfil", key: "profile" },
-  { href: "/admin", label: "Admin", key: "admin" }
+  { href: "/eventos", label: "Eventos", key: "events" }
 ] as const;
 
 export function Header({ active = "home" }: HeaderProps) {
+  const router = useRouter();
+  const [currentUser, setCurrentUser] = useState<PublicUser | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -33,6 +35,35 @@ export function Header({ active = "home" }: HeaderProps) {
 
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    function refreshSession() {
+      setCurrentUser(getValidToken() ? getStoredUser() : null);
+    }
+
+    refreshSession();
+    window.addEventListener(sessionChangedEvent, refreshSession);
+    window.addEventListener("storage", refreshSession);
+
+    return () => {
+      window.removeEventListener(sessionChangedEvent, refreshSession);
+      window.removeEventListener("storage", refreshSession);
+    };
+  }, []);
+
+  function handleLogout() {
+    clearSession();
+    setCurrentUser(null);
+    setIsOpen(false);
+    router.push("/login");
+  }
+
+  const sessionLinks = currentUser
+    ? [
+        { href: "/perfil", label: "Perfil", key: "profile" as const },
+        ...(currentUser.role === "ADMIN" ? [{ href: "/admin", label: "Admin", key: "admin" as const }] : [])
+      ]
+    : [{ href: "/login", label: "Entrar", key: "login" as const }];
 
   return (
     <header className={`header ${isScrolled ? "header--scrolled" : ""}`} id="header" role="banner">
@@ -56,7 +87,7 @@ export function Header({ active = "home" }: HeaderProps) {
           role="navigation"
           aria-label="Navegação principal"
         >
-          {baseLinks.map((link) => {
+          {[...baseLinks, ...sessionLinks].map((link) => {
             const key = "key" in link ? link.key : undefined;
             const isActive = key ? active === key : false;
 
@@ -71,6 +102,18 @@ export function Header({ active = "home" }: HeaderProps) {
               </Link>
             );
           })}
+
+          {currentUser ? (
+            <>
+              <span className="header__session" aria-label={`Sessão iniciada como ${currentUser.name}`}>
+                {currentUser.name.split(" ")[0]}
+                <strong>{currentUser.role === "ADMIN" ? "ADMIN" : "USER"}</strong>
+              </span>
+              <button type="button" className="header__nav-link header__nav-button" onClick={handleLogout}>
+                Sair
+              </button>
+            </>
+          ) : null}
         </nav>
 
         <button

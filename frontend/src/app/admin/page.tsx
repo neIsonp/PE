@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
+import { AuthGate } from "@/components/auth/AuthGate";
 import { Header } from "@/components/layout/Header";
 
 export const metadata: Metadata = {
@@ -12,7 +13,9 @@ export default function AdminPage() {
     <>
       <Header active="admin" />
       <main id="conteudo-principal" className="auth-page">
-        <AdminDashboard />
+        <AuthGate requiredRole="ADMIN">
+          <AdminDashboard />
+        </AuthGate>
       </main>
     </>
   );

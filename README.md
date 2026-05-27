@@ -26,7 +26,7 @@ Refatorização e desenvolvimento da aplicação web do Centro Académico Clíni
 - **Node.js com Fastify:** escolhido pela performance, simplicidade, baixo overhead e excelente integração com TypeScript.
 - **Zod:** validação de dados de entrada e schemas reutilizáveis para autenticação, perfis e respostas da API.
 - **Prisma:** ORM moderno para modelação e acesso seguro à base de dados.
-- **SQLite:** base de dados usada por defeito em desenvolvimento, simples de configurar e suficiente para o contexto académico. A arquitetura permite migração futura para PostgreSQL ou MySQL.
+- **PostgreSQL:** base de dados relacional usada pelo backend para persistir utilizadores, eventos, contactos e subscrições com maior robustez.
 - **JWT:** autenticação stateless entre frontend e backend.
 - **bcrypt:** hashing seguro de palavras-passe.
 - **Helmet, CORS e Rate Limit:** camadas de proteção básicas para a API.
@@ -72,7 +72,7 @@ Refatorização e desenvolvimento da aplicação web do Centro Académico Clíni
 flowchart LR
   User["Utilizador"] --> Frontend["Next.js Frontend"]
   Frontend -->|HTTP JSON / JWT| Backend["Fastify API"]
-  Backend -->|Prisma ORM| Database["SQLite Database"]
+  Backend -->|Prisma ORM| Database["PostgreSQL Database"]
   Frontend -->|Map tiles| OpenStreetMap["OpenStreetMap"]
   Frontend -->|Weather forecast| OpenMeteo["Open-Meteo API"]
 ```
@@ -147,6 +147,12 @@ Copy-Item frontend/.env.example frontend/.env.local
 
 ### Base de Dados
 
+Iniciar PostgreSQL via Docker, se não existir uma instância local ativa:
+
+```bash
+docker compose up -d postgres
+```
+
 Gerar o Prisma Client:
 
 ```bash
@@ -195,6 +201,8 @@ npm run lint             # Typecheck backend e frontend
 npm run test             # Testes backend + frontend
 npm run check            # Lint + testes + build
 npm run db:studio        # Prisma Studio
+npm run docker:up        # PostgreSQL + backend + frontend em containers
+npm run docker:down      # Para os containers Docker
 ```
 
 ## Endpoints Principais
@@ -223,7 +231,8 @@ npm run db:studio        # Prisma Studio
 - A gestão de utilizadores, mensagens e newsletter foi movida para uma API real por envolver dados que devem persistir e ser moderados.
 - O backend foi estruturado por módulos (`auth`, `users`, `events` e `communications`) com separação entre rotas, controllers, schemas e services para permitir crescimento futuro.
 - A validação foi centralizada com Zod para reduzir duplicação e rejeitar dados inválidos antes da lógica de negócio.
-- O Prisma foi escolhido para abstrair a base de dados e permitir troca futura de SQLite para PostgreSQL/MySQL com impacto reduzido.
+- O Prisma foi escolhido para abstrair o acesso relacional, tipar consultas e manter o backend preparado para evoluções futuras com baixo impacto.
+- O PostgreSQL foi adotado como base relacional principal, mantendo o Prisma como camada de acesso e modelação.
 - Os testes foram divididos entre unidade e integração: schemas/rotas no backend e utilitários críticos no frontend.
 - O projeto inclui pipeline GitHub Actions para instalar dependências, gerar Prisma Client, correr lint, testes e build a cada push ou pull request.
 

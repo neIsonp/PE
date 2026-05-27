@@ -10,8 +10,22 @@ jobs:
   quality:
     name: Lint, test and build
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: caca
+          POSTGRES_PASSWORD: caca
+          POSTGRES_DB: caca_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U caca -d caca_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      DATABASE_URL: "file:./ci.db"
+      DATABASE_URL: "postgresql://caca:caca@localhost:5432/caca_ci?schema=public"
       JWT_SECRET: "ci-secret-with-more-than-thirty-two-characters"
       FRONTEND_ORIGIN: "http://localhost:3000"
       BCRYPT_SALT_ROUNDS: "10"

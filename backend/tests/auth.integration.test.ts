@@ -1,4 +1,6 @@
+import { execSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import { fileURLToPath } from "node:url";
 import bcrypt from "bcryptjs";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { buildApp } from "../src/app.js";
@@ -19,57 +21,14 @@ type AuthBody = {
 
 let app: TestApp;
 
-async function createSchema() {
-  await app.prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS newsletter_subscriptions`);
-  await app.prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS contact_messages`);
-  await app.prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS events`);
-  await app.prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS users`);
-  await app.prisma.$executeRawUnsafe(`
-    CREATE TABLE users (
-      id TEXT NOT NULL PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL UNIQUE,
-      passwordHash TEXT NOT NULL,
-      role TEXT NOT NULL DEFAULT 'USER',
-      bio TEXT,
-      institution TEXT,
-      avatarUrl TEXT,
-      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-  await app.prisma.$executeRawUnsafe(`
-    CREATE TABLE events (
-      id TEXT NOT NULL PRIMARY KEY,
-      title TEXT NOT NULL,
-      date TEXT NOT NULL,
-      time TEXT NOT NULL,
-      location TEXT NOT NULL,
-      description TEXT,
-      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      createdById TEXT,
-      CONSTRAINT events_createdById_fkey FOREIGN KEY (createdById) REFERENCES users (id) ON DELETE SET NULL ON UPDATE CASCADE
-    )
-  `);
-  await app.prisma.$executeRawUnsafe(`
-    CREATE TABLE contact_messages (
-      id TEXT NOT NULL PRIMARY KEY,
-      firstName TEXT NOT NULL,
-      lastName TEXT NOT NULL,
-      email TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      message TEXT NOT NULL,
-      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-  await app.prisma.$executeRawUnsafe(`
-    CREATE TABLE newsletter_subscriptions (
-      id TEXT NOT NULL PRIMARY KEY,
-      email TEXT NOT NULL UNIQUE,
-      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
+function pushSchema() {
+  const backendRoot = fileURLToPath(new URL("..", import.meta.url));
+
+  execSync("npx prisma db push --skip-generate", {
+    cwd: backendRoot,
+    env: process.env,
+    stdio: "pipe"
+  });
 }
 
 async function registerUser(email: string) {
@@ -93,15 +52,19 @@ async function registerUser(email: string) {
 describe("auth, users, events and communications API", () => {
   beforeAll(async () => {
     process.env.NODE_ENV = "test";
-    process.env.DATABASE_URL = "file:./test.db";
+    process.env.DATABASE_URL =
+      process.env.TEST_DATABASE_URL ??
+      process.env.DATABASE_URL ??
+      "postgresql://caca:caca@localhost:5433/caca_test?schema=public";
     process.env.JWT_SECRET = "test-secret-with-more-than-thirty-two-characters";
     process.env.FRONTEND_ORIGIN = "http://localhost:3000";
     process.env.BCRYPT_SALT_ROUNDS = "10";
 
+    pushSchema();
+
     const module = await import("../src/app.js");
     app = await module.buildApp();
     await app.ready();
-    await createSchema();
   });
 
   beforeEach(async () => {
@@ -112,7 +75,7 @@ describe("auth, users, events and communications API", () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await app?.close();
   });
 
   it("regista, autentica e atualiza o perfil de um utilizador", async () => {

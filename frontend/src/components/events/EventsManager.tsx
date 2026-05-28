@@ -120,7 +120,7 @@ export function EventsManager() {
 
   return (
     <>
-      <section className="section" style={{ paddingTop: 140 }}>
+      <section className="section events-page">
         <div className="container">
           <h1 className="section__title">Gestão de Eventos</h1>
           <p className="section__description">
@@ -147,20 +147,10 @@ export function EventsManager() {
             onCancelEdit={() => setEditingEvent(null)}
           />
 
-          <hr style={{ border: 0, borderTop: "1px solid var(--cinza-200)", margin: "60px 0" }} />
+          <hr className="events-divider" />
 
-          <div
-            className="events-list-header"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 24,
-              flexWrap: "wrap",
-              gap: "1rem"
-            }}
-          >
-            <h3 className="c-form__title" style={{ marginBottom: 0 }}>
+          <div className="events-list-header">
+            <h3 className="c-form__title events-list-header__title">
               Eventos
             </h3>
             <div className="events-filter" role="group" aria-label="Filtrar eventos por período">
@@ -195,10 +185,19 @@ export function EventsManager() {
         </div>
       </section>
 
-      <section id="mapa-eventos" className="section">
-        <div className="container">
-          <h2 className="section__title">Mapa de Eventos</h2>
-          <EventsMap events={events} />
+      <section id="mapa-eventos" className="section events-map-section">
+        <div className="container events-map-layout">
+          <div className="events-map-copy">
+            <p className="events-map-eyebrow">Explorar</p>
+            <h2 className="events-map-title">Mapa de Eventos</h2>
+            <p className="events-map-description">
+              Visualize os eventos nas ilhas dos Açores com um enquadramento estável e uma leitura
+              mais clara da distribuição geográfica.
+            </p>
+          </div>
+          <div className="events-map-card">
+            <EventsMap events={events} />
+          </div>
         </div>
       </section>
 

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { EventsManager } from "@/components/events/EventsManager";
+import { EventsAgenda } from "@/components/events/EventsAgenda";
 import { Header } from "@/components/layout/Header";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 
 export const metadata: Metadata = {
   title: "Eventos | CACA",
-  description: "Gestão de eventos académicos e clínicos do CACA integrada com a API."
+  description: "Agenda pública de eventos académicos e clínicos do CACA."
 };
 
 export default function EventosPage() {
@@ -13,7 +13,7 @@ export default function EventosPage() {
     <>
       <Header active="events" />
       <main id="conteudo-principal">
-        <EventsManager />
+        <EventsAgenda />
       </main>
       <ScrollToTop />
     </>

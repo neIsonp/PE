@@ -52,6 +52,9 @@ model Event {
   date        String
   time        String
   location    String
+  venue       String?
+  latitude    Float?
+  longitude   Float?
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -59,6 +62,7 @@ model Event {
   createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([date, time])
+  @@index([location])
   @@index([createdById, createdAt])
   @@map("events")
 }

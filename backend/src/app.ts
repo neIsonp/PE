@@ -56,7 +56,8 @@ export async function buildApp() {
   await app.register(helmet);
   await app.register(cors, {
     origin: getAllowedOrigins(),
-    credentials: true
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"]
   });
   await app.register(rateLimit, {
     max: env.RATE_LIMIT_MAX,

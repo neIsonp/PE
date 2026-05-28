@@ -12,6 +12,9 @@ export type CacaEvent = {
   date: string;
   time: string;
   location: string;
+  venue?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   description: string | null;
   createdById?: string | null;
   createdAt?: string;

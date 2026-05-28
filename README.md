@@ -97,9 +97,11 @@ flowchart LR
 - Formulário de contacto com validação client-side, feedback ao utilizador e persistência na API.
 - Newsletter com validação e persistência na API.
 - Gráfico de oportunidades migrado para SVG acessível em React.
-- Gestão de eventos com criação, edição, eliminação e listagem através do backend.
+- Agenda pública de eventos com listagem, filtros por período, clima por evento e mapa.
+- Área pessoal em `/perfil#meus-eventos` para criação, edição e eliminação dos eventos do utilizador autenticado.
+- Registo de local exato do evento com nome do espaço, latitude, longitude, pesquisa OpenStreetMap e seleção por mapa.
 - Persistência de eventos na base de dados via Prisma.
-- Mapa interativo com marcadores de eventos.
+- Mapa interativo com marcadores de eventos, coordenadas exatas quando disponíveis e separação visual de marcadores sobrepostos.
 - Proteção de escrita na página de eventos: visitantes consultam eventos; utilizadores autenticados fazem CRUD.
 
 ### Novas Funcionalidades da API de Utilizadores
@@ -201,6 +203,8 @@ npm run dev
 URLs principais:
 
 - **Frontend:** `http://localhost:3000`
+- **Agenda pública:** `http://localhost:3000/eventos`
+- **Gestão de eventos pessoais:** `http://localhost:3000/perfil#meus-eventos`
 - **Backend:** `http://localhost:3333`
 - **Swagger:** `http://localhost:3333/docs`
 
@@ -229,7 +233,8 @@ npm run docker:down      # Para os containers Docker
 - `GET /api/users` — lista utilizadores, apenas para `ADMIN`.
 - `PATCH /api/users/:id/role` — altera permissões, apenas para `ADMIN`.
 - `GET /api/events` — lista eventos.
-- `POST /api/events` — cria evento autenticado.
+- `GET /api/events/mine` — lista apenas eventos do utilizador autenticado.
+- `POST /api/events` — cria evento autenticado com ilha/zona base e localização exata opcional (`venue`, `latitude`, `longitude`).
 - `PUT /api/events/:id` — atualiza evento do autor ou de administrador.
 - `DELETE /api/events/:id` — elimina evento do autor ou de administrador.
 - `POST /api/contact` — regista mensagem de contacto.
@@ -308,7 +313,7 @@ npm run docker:down      # Para os containers Docker
 
 ### Open-Meteo
 
-Usada para consultar previsões meteorológicas associadas à criação de eventos. A integração está no frontend e usa latitude/longitude das ilhas para obter temperatura e estado do tempo.
+Usada para consultar previsões meteorológicas associadas aos eventos. A integração está no frontend e usa coordenadas exatas do evento quando existem, com fallback para a ilha/zona base.
 
 - Endpoint base: `https://api.open-meteo.com/v1/forecast`
 - Ficheiro principal: `frontend/src/lib/weather.ts`
@@ -319,6 +324,7 @@ Usados para apresentar mapas interativos e marcadores dos eventos nos Açores.
 
 - Leaflet cria o mapa e os marcadores.
 - OpenStreetMap fornece os tiles do mapa.
+- O formulário de eventos usa um mapa clicável para escolher o ponto exato do evento.
 - Os ícones do Leaflet foram copiados para `frontend/public/leaflet` para evitar dependência de CDN nos marcadores.
 - Ficheiro principal: `frontend/src/components/map/EventsMap.tsx`
 

@@ -6,6 +6,7 @@ import { EventController } from "./event.controller.js";
 import { EventService } from "./event.service.js";
 import {
   eventBodySchema,
+  eventListQuerySchema,
   eventParamsSchema,
   eventResponseSchema,
   eventsListResponseSchema
@@ -22,12 +23,13 @@ export async function eventRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["events"],
+        querystring: eventListQuerySchema,
         response: {
           200: eventsListResponseSchema
         }
       }
     },
-    () => eventController.listEvents()
+    (request) => eventController.listEvents(request)
   );
 
   routes.get(

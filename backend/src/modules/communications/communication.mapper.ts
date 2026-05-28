@@ -8,6 +8,7 @@ export function toPublicContactMessage(message: ContactMessage) {
     email: message.email,
     phone: message.phone,
     message: message.message,
+    status: message.status,
     createdAt: message.createdAt.toISOString()
   };
 }

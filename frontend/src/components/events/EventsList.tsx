@@ -1,23 +1,24 @@
 import { islandLocations } from "@/data/events";
+import { EmptyState } from "@/components/ui/EmptyState";
 import type { CacaEvent } from "@/types/events";
 
 type EventsListProps = {
   events: CacaEvent[];
   canManage?: boolean;
   onEdit: (event: CacaEvent) => void;
-  onDelete: (id: string) => void;
+  onDelete: (event: CacaEvent) => void;
 };
 
 export function EventsList({ events, canManage = false, onEdit, onDelete }: EventsListProps) {
   if (events.length === 0) {
     return (
       <div className="research" id="events-list">
-        <article className="research__card" style={{ gridColumn: "span 12" }}>
-          <div className="research__content">
-            <h3 className="research__card-title">Sem eventos registados</h3>
-            <p className="research__card-text">Adicione o primeiro evento académico ou clínico do CACA.</p>
-          </div>
-        </article>
+        <div style={{ gridColumn: "span 12" }}>
+          <EmptyState
+            title="Sem eventos encontrados"
+            message="Não existem eventos para o filtro selecionado."
+          />
+        </div>
       </div>
     );
   }
@@ -52,7 +53,7 @@ export function EventsList({ events, canManage = false, onEdit, onDelete }: Even
                 </button>
                 <button
                   type="button"
-                  onClick={() => onDelete(event.id)}
+                  onClick={() => onDelete(event)}
                   className="btn"
                   style={{ background: "#eef2f6", color: "#e11d48", fontSize: "0.85rem", padding: "8px 16px" }}
                 >

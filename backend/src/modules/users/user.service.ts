@@ -2,7 +2,7 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 import { AppError } from "../../shared/app-error.js";
 import type { UserRole } from "../../shared/roles.js";
 import { toPublicUser } from "./user.mapper.js";
-import type { UpdateProfileInput } from "./user.schemas.js";
+import type { UpdateProfileInput, UsersListQuery } from "./user.schemas.js";
 
 function normalizeNullableText(value?: string | null) {
   const normalizedValue = value?.trim();
@@ -10,15 +10,48 @@ function normalizeNullableText(value?: string | null) {
   return normalizedValue ? normalizedValue : null;
 }
 
+function makeMeta(page: number, limit: number, total: number) {
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+
+  return {
+    page,
+    limit,
+    total,
+    totalPages,
+    hasNextPage: page < totalPages,
+    hasPreviousPage: page > 1
+  };
+}
+
 export class UserService {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async listUsers() {
-    const users = await this.prisma.user.findMany({
-      orderBy: { createdAt: "desc" }
-    });
+  async listUsers(query: UsersListQuery) {
+    const search = query.search?.trim();
+    const where: Prisma.UserWhereInput = search
+      ? {
+          OR: [
+            { name: { contains: search, mode: "insensitive" } },
+            { email: { contains: search, mode: "insensitive" } }
+          ]
+        }
+      : {};
+    const skip = (query.page - 1) * query.limit;
 
-    return users.map(toPublicUser);
+    const [users, total] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: query.limit
+      }),
+      this.prisma.user.count({ where })
+    ]);
+
+    return {
+      users: users.map(toPublicUser),
+      meta: makeMeta(query.page, query.limit, total)
+    };
   }
 
   async getUserById(id: string) {

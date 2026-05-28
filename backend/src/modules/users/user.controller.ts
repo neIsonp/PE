@@ -4,9 +4,10 @@ import { AppError } from "../../shared/app-error.js";
 import { assertRole } from "../../shared/authorization.js";
 import { getAuditRequestContext, type AuditService } from "../audit/audit.service.js";
 import type { UserService } from "./user.service.js";
-import type { UpdateProfileInput, UpdateRoleInput, UserIdParams } from "./user.schemas.js";
+import type { UpdateProfileInput, UpdateRoleInput, UserIdParams, UsersListQuery } from "./user.schemas.js";
 
 type UpdateProfileRequest = FastifyRequest<{ Body: UpdateProfileInput }>;
+type UsersListRequest = FastifyRequest<{ Querystring: UsersListQuery }>;
 type UpdateRoleRequest = FastifyRequest<{ Params: UserIdParams; Body: UpdateRoleInput }>;
 
 export class UserController {
@@ -27,12 +28,12 @@ export class UserController {
     return { user };
   }
 
-  async listUsers(request: FastifyRequest) {
+  async listUsers(request: UsersListRequest) {
     assertRole(request.user.role, ["ADMIN"], "Apenas administradores podem listar utilizadores.");
 
-    const users = await this.userService.listUsers();
+    const result = await this.userService.listUsers(request.query);
 
-    return { users };
+    return result;
   }
 
   async updateRole(request: UpdateRoleRequest) {

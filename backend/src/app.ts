@@ -34,6 +34,12 @@ const readyResponseSchema = z.object({
   database: z.enum(["ok", "unavailable"])
 });
 
+function getAllowedOrigins() {
+  return env.FRONTEND_ORIGIN.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
 export async function buildApp() {
   const app = Fastify({
     genReqId: (request) => {
@@ -49,7 +55,7 @@ export async function buildApp() {
 
   await app.register(helmet);
   await app.register(cors, {
-    origin: env.FRONTEND_ORIGIN,
+    origin: getAllowedOrigins(),
     credentials: true
   });
   await app.register(rateLimit, {

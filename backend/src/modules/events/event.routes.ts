@@ -8,6 +8,7 @@ import {
   eventBodySchema,
   eventParamsSchema,
   eventResponseSchema,
+  eventsListQuerySchema,
   eventsListResponseSchema
 } from "./event.schemas.js";
 
@@ -22,12 +23,13 @@ export async function eventRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["events"],
+        querystring: eventsListQuerySchema,
         response: {
           200: eventsListResponseSchema
         }
       }
     },
-    () => eventController.listEvents()
+    (request) => eventController.listEvents(request)
   );
 
   routes.get(

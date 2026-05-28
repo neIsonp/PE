@@ -17,7 +17,7 @@ const eventSchema = z.object({
 type EventFormProps = {
   editingEvent: CacaEvent | null;
   isDisabled?: boolean;
-  onSave: (event: CacaEvent) => void;
+  onSave: (event: CacaEvent) => Promise<void>;
   onCancelEdit: () => void;
 };
 
@@ -29,6 +29,8 @@ type Feedback = {
 export function EventForm({ editingEvent, isDisabled = false, onSave, onCancelEdit }: EventFormProps) {
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [weather, setWeather] = useState<Feedback>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isCheckingWeather, setIsCheckingWeather] = useState(false);
   const [values, setValues] = useState({
     title: "",
     date: "",
@@ -71,7 +73,7 @@ export function EventForm({ editingEvent, isDisabled = false, onSave, onCancelEd
     onCancelEdit();
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const parsedEvent = eventSchema.safeParse(values);
 
@@ -83,26 +85,37 @@ export function EventForm({ editingEvent, isDisabled = false, onSave, onCancelEd
       return;
     }
 
-    onSave({
-      id: editingEvent?.id ?? crypto.randomUUID(),
-      ...parsedEvent.data
-    });
-    setFeedback({
-      type: "success",
-      message: editingEvent ? "Evento atualizado com sucesso." : "Evento criado com sucesso."
-    });
-    setValues({
-      title: "",
-      date: "",
-      time: "",
-      location: "",
-      description: ""
-    });
-    setWeather(null);
-    onCancelEdit();
+    setIsSaving(true);
+    try {
+      await onSave({
+        id: editingEvent?.id ?? crypto.randomUUID(),
+        ...parsedEvent.data
+      });
+      setFeedback({
+        type: "success",
+        message: editingEvent ? "Evento atualizado com sucesso." : "Evento criado com sucesso."
+      });
+      setValues({
+        title: "",
+        date: "",
+        time: "",
+        location: "",
+        description: ""
+      });
+      setWeather(null);
+      onCancelEdit();
+    } catch {
+      setFeedback({
+        type: "error",
+        message: "Não foi possível guardar o evento."
+      });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   async function handleWeather() {
+    setIsCheckingWeather(true);
     try {
       const parsedEvent = eventSchema.pick({ date: true, time: true, location: true, title: true }).safeParse({
         ...values,
@@ -127,6 +140,8 @@ export function EventForm({ editingEvent, isDisabled = false, onSave, onCancelEd
         type: "error",
         message: error instanceof Error ? error.message : "Não foi possível obter a previsão."
       });
+    } finally {
+      setIsCheckingWeather(false);
     }
   }
 
@@ -136,7 +151,7 @@ export function EventForm({ editingEvent, isDisabled = false, onSave, onCancelEd
         {editingEvent ? "Editar Evento" : "Registar Novo Evento"}
       </h3>
       <form id="event-form" onSubmit={handleSubmit}>
-        <fieldset disabled={isDisabled} aria-disabled={isDisabled}>
+        <fieldset disabled={isDisabled || isSaving} aria-disabled={isDisabled || isSaving}>
           <div className="event-form-grid">
             <div className="c-form__group">
               <label htmlFor="event-title" className="sr-only">
@@ -236,16 +251,22 @@ export function EventForm({ editingEvent, isDisabled = false, onSave, onCancelEd
           </div>
 
           <div className="form-actions" style={{ display: "flex", gap: "1rem", justifyContent: "center", marginTop: "1rem", flexWrap: "wrap" }}>
-            <button type="button" id="check-weather" className="btn btn--outline" onClick={handleWeather}>
-              Ver Clima
+            <button
+              type="button"
+              id="check-weather"
+              className="btn btn--outline"
+              onClick={handleWeather}
+              disabled={isCheckingWeather || isSaving}
+            >
+              {isCheckingWeather ? "A consultar..." : "Ver Clima"}
             </button>
             {editingEvent ? (
-              <button type="button" className="btn btn--outline" onClick={resetForm}>
+              <button type="button" className="btn btn--outline" onClick={resetForm} disabled={isSaving}>
                 Cancelar
               </button>
             ) : null}
-            <button type="submit" id="btn-save-event" className="btn btn--primary">
-              {editingEvent ? "Atualizar Evento" : "Guardar Evento"}
+            <button type="submit" id="btn-save-event" className="btn btn--primary" disabled={isSaving}>
+              {isSaving ? "A guardar..." : editingEvent ? "Atualizar Evento" : "Guardar Evento"}
             </button>
           </div>
         </fieldset>

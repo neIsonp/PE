@@ -2,8 +2,9 @@ import { AuditAction } from "@prisma/client";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { getAuditRequestContext, type AuditService } from "../audit/audit.service.js";
 import type { EventService } from "./event.service.js";
-import type { EventInput, EventParams } from "./event.schemas.js";
+import type { EventInput, EventParams, EventsListQuery } from "./event.schemas.js";
 
+type EventListRequest = FastifyRequest<{ Querystring: EventsListQuery }>;
 type EventParamsRequest = FastifyRequest<{ Params: EventParams }>;
 type EventBodyRequest = FastifyRequest<{ Body: EventInput }>;
 type EventUpdateRequest = FastifyRequest<{ Params: EventParams; Body: EventInput }>;
@@ -14,8 +15,8 @@ export class EventController {
     private readonly auditService: AuditService
   ) {}
 
-  async listEvents() {
-    const events = await this.eventService.listEvents();
+  async listEvents(request: EventListRequest) {
+    const events = await this.eventService.listEvents(request.query);
 
     return { events };
   }

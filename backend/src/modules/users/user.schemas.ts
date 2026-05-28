@@ -41,8 +41,24 @@ export const userIdParamsSchema = z.object({
   id: z.string().min(1)
 });
 
+export const usersListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+  search: z.string().trim().max(120).optional()
+});
+
+export const paginationMetaSchema = z.object({
+  page: z.number().int(),
+  limit: z.number().int(),
+  total: z.number().int(),
+  totalPages: z.number().int(),
+  hasNextPage: z.boolean(),
+  hasPreviousPage: z.boolean()
+});
+
 export const usersListResponseSchema = z.object({
-  users: z.array(publicUserSchema)
+  users: z.array(publicUserSchema),
+  meta: paginationMetaSchema
 });
 
 export const userResponseSchema = z.object({
@@ -53,3 +69,4 @@ export type PublicUser = z.infer<typeof publicUserSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileBodySchema>;
 export type UpdateRoleInput = z.infer<typeof updateRoleBodySchema>;
 export type UserIdParams = z.infer<typeof userIdParamsSchema>;
+export type UsersListQuery = z.infer<typeof usersListQuerySchema>;

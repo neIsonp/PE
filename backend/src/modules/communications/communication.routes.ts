@@ -6,11 +6,15 @@ import { CommunicationController } from "./communication.controller.js";
 import { CommunicationService } from "./communication.service.js";
 import {
   contactMessageBodySchema,
+  contactMessageParamsSchema,
   contactMessageResponseSchema,
+  contactMessagesListQuerySchema,
   contactMessagesListResponseSchema,
   newsletterBodySchema,
   newsletterSubscriptionResponseSchema,
-  newsletterSubscriptionsListResponseSchema
+  newsletterSubscriptionsListQuerySchema,
+  newsletterSubscriptionsListResponseSchema,
+  updateContactMessageStatusBodySchema
 } from "./communication.schemas.js";
 
 export async function communicationRoutes(app: FastifyInstance) {
@@ -46,6 +50,7 @@ export async function communicationRoutes(app: FastifyInstance) {
       schema: {
         tags: ["communications"],
         security: [{ bearerAuth: [] }],
+        querystring: contactMessagesListQuerySchema,
         response: {
           200: contactMessagesListResponseSchema,
           401: errorResponseSchema,
@@ -54,6 +59,26 @@ export async function communicationRoutes(app: FastifyInstance) {
       }
     },
     (request) => communicationController.listContactMessages(request)
+  );
+
+  routes.patch(
+    "/contact/:id/status",
+    {
+      preHandler: [app.authenticate],
+      schema: {
+        tags: ["communications"],
+        security: [{ bearerAuth: [] }],
+        params: contactMessageParamsSchema,
+        body: updateContactMessageStatusBodySchema,
+        response: {
+          200: contactMessageResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema
+        }
+      }
+    },
+    (request) => communicationController.updateContactMessageStatus(request)
   );
 
   routes.post(
@@ -84,6 +109,7 @@ export async function communicationRoutes(app: FastifyInstance) {
       schema: {
         tags: ["communications"],
         security: [{ bearerAuth: [] }],
+        querystring: newsletterSubscriptionsListQuerySchema,
         response: {
           200: newsletterSubscriptionsListResponseSchema,
           401: errorResponseSchema,

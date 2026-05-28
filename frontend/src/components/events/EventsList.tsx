@@ -24,39 +24,27 @@ export function EventsList({ events, canManage = false, onEdit, onDelete }: Even
   }
 
   return (
-    <div id="events-list" className="research">
+    <div id="events-list" className="research events-results">
       {events.map((event) => {
         const location = islandLocations.find((item) => item.value === event.location);
 
         return (
-          <article className="research__card" style={{ display: "flex", flexDirection: "column" }} key={event.id}>
-            <div className="research__content" style={{ flexGrow: 1 }}>
+          <article className="research__card event-card" key={event.id}>
+            <div className="research__content">
               <h3 className="research__card-title">{event.title}</h3>
-              <p className="research__card-text" style={{ marginBottom: 15 }}>
-                <strong>
-                  📅 {event.date} às {event.time}
-                </strong>
-                <br />
-                📍 {location?.label ?? event.location}
+              <p className="research__card-text event-card__meta">
+                <strong>{event.date}</strong>
+                <span>{event.time}</span>
+                <span>{location?.label ?? event.location}</span>
               </p>
               {event.description ? <p className="research__card-text">{event.description}</p> : null}
             </div>
             {canManage ? (
               <div className="event-actions">
-                <button
-                  type="button"
-                  onClick={() => onEdit(event)}
-                  className="btn btn--outline"
-                  style={{ fontSize: "0.85rem", padding: "8px 16px" }}
-                >
+                <button type="button" onClick={() => onEdit(event)} className="btn btn--outline event-actions__button">
                   Editar
                 </button>
-                <button
-                  type="button"
-                  onClick={() => onDelete(event)}
-                  className="btn"
-                  style={{ background: "#eef2f6", color: "#e11d48", fontSize: "0.85rem", padding: "8px 16px" }}
-                >
+                <button type="button" onClick={() => onDelete(event)} className="btn btn--danger event-actions__button">
                   Eliminar
                 </button>
               </div>

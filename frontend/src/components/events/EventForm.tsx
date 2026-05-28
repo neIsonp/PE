@@ -146,24 +146,23 @@ export function EventForm({ editingEvent, isDisabled = false, onSave, onCancelEd
   }
 
   return (
-    <div className="c-form" style={{ maxWidth: 800, margin: "0 auto" }}>
-      <h3 className="c-form__title" style={{ marginBottom: 24 }}>
+    <div className="c-form event-form-card">
+      <h3 className="c-form__title event-form-card__title">
         {editingEvent ? "Editar Evento" : "Registar Novo Evento"}
       </h3>
-      <form id="event-form" onSubmit={handleSubmit}>
+      <form id="event-form" className="event-form" onSubmit={handleSubmit}>
         <fieldset disabled={isDisabled || isSaving} aria-disabled={isDisabled || isSaving}>
           <div className="event-form-grid">
-            <div className="c-form__group">
-              <label htmlFor="event-title" className="sr-only">
+            <div className="c-form__group event-form-grid__wide">
+              <label htmlFor="event-title" className="form-group__label">
                 Título do Evento
               </label>
               <input
                 type="text"
                 id="event-title"
-                className="c-form__input"
-                placeholder="Título do Evento *"
-                aria-label="Título do Evento"
-                style={{ paddingLeft: 20 }}
+                name="event-title"
+                className="c-form__input c-form__input--no-icon"
+                placeholder="Ex.: Workshop de Investigação Clínica"
                 value={values.title}
                 onChange={(event) => updateValue("title", event.target.value)}
                 required
@@ -171,15 +170,14 @@ export function EventForm({ editingEvent, isDisabled = false, onSave, onCancelEd
             </div>
 
             <div className="c-form__group">
-              <label htmlFor="event-date" className="sr-only">
+              <label htmlFor="event-date" className="form-group__label">
                 Data do Evento
               </label>
               <input
                 type="date"
                 id="event-date"
-                className="c-form__input"
-                aria-label="Data do Evento"
-                style={{ paddingLeft: 20 }}
+                name="event-date"
+                className="c-form__input c-form__input--no-icon"
                 value={values.date}
                 onChange={(event) => updateValue("date", event.target.value)}
                 required
@@ -187,31 +185,28 @@ export function EventForm({ editingEvent, isDisabled = false, onSave, onCancelEd
             </div>
 
             <div className="c-form__group">
-              <label htmlFor="event-time" className="sr-only">
+              <label htmlFor="event-time" className="form-group__label">
                 Hora do Evento
               </label>
               <input
                 type="time"
                 id="event-time"
-                className="c-form__input"
-                aria-label="Hora do Evento"
-                style={{ paddingLeft: 20 }}
+                name="event-time"
+                className="c-form__input c-form__input--no-icon"
                 value={values.time}
                 onChange={(event) => updateValue("time", event.target.value)}
                 required
               />
             </div>
 
-            <div className="c-form__group">
-              <label htmlFor="event-location" className="sr-only">
+            <div className="c-form__group event-form-grid__wide">
+              <label htmlFor="event-location" className="form-group__label">
                 Localização do Evento
               </label>
               <select
                 id="event-location"
                 name="event-location"
-                className="c-form__input"
-                aria-label="Localização do Evento"
-                style={{ paddingLeft: 20 }}
+                className="c-form__input c-form__input--no-icon event-form__select"
                 value={values.location}
                 onChange={(event) => updateValue("location", event.target.value)}
                 required
@@ -234,23 +229,22 @@ export function EventForm({ editingEvent, isDisabled = false, onSave, onCancelEd
             </div>
           </div>
 
-          <div className="c-form__group">
-            <label htmlFor="event-description" className="sr-only">
+          <div className="c-form__group event-form-grid__full">
+            <label htmlFor="event-description" className="form-group__label">
               Descrição do evento
             </label>
             <textarea
               id="event-description"
-              className="c-form__input c-form__textarea"
-              rows={3}
+              name="event-description"
+              className="c-form__input c-form__input--no-icon c-form__textarea"
+              rows={5}
               placeholder="Descrição detalhada do evento..."
-              aria-label="Descrição do evento"
-              style={{ paddingLeft: 20 }}
               value={values.description}
               onChange={(event) => updateValue("description", event.target.value)}
             />
           </div>
 
-          <div className="form-actions" style={{ display: "flex", gap: "1rem", justifyContent: "center", marginTop: "1rem", flexWrap: "wrap" }}>
+          <div className="form-actions event-form__actions">
             <button
               type="button"
               id="check-weather"
@@ -273,7 +267,10 @@ export function EventForm({ editingEvent, isDisabled = false, onSave, onCancelEd
       </form>
 
       {weather ? (
-        <div className={`weather-info-box weather-${weather.type === "success" ? "success" : "error"}-box`} role="status">
+        <div
+          className={`weather-info-box weather-${weather.type === "success" ? "success" : "error"}-box`}
+          role="status"
+        >
           {weather.message}
         </div>
       ) : null}

@@ -95,7 +95,14 @@ export function AuthForm({ mode }: AuthFormProps) {
               <label htmlFor="name" className="form-group__label">
                 Nome completo
               </label>
-              <input id="name" name="name" className="c-form__input c-form__input--no-icon" required />
+              <input
+                id="name"
+                name="name"
+                className="c-form__input c-form__input--no-icon"
+                placeholder="Introduza o seu nome completo"
+                autoComplete="name"
+                required
+              />
             </div>
             <div className="c-form__group">
               <label htmlFor="institution" className="form-group__label">
@@ -106,6 +113,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 name="institution"
                 className="c-form__input c-form__input--no-icon"
                 placeholder="Universidade, hospital ou centro de investigação"
+                autoComplete="organization"
               />
             </div>
           </>
@@ -115,7 +123,15 @@ export function AuthForm({ mode }: AuthFormProps) {
           <label htmlFor="email" className="form-group__label">
             Email
           </label>
-          <input id="email" name="email" type="email" className="c-form__input c-form__input--no-icon" required />
+          <input
+            id="email"
+            name="email"
+            type="email"
+            className="c-form__input c-form__input--no-icon"
+            placeholder="nome@exemplo.pt"
+            autoComplete="email"
+            required
+          />
         </div>
 
         <div className="c-form__group">
@@ -127,11 +143,14 @@ export function AuthForm({ mode }: AuthFormProps) {
             name="password"
             type="password"
             className="c-form__input c-form__input--no-icon"
+            placeholder={isRegister ? "Crie uma palavra-passe segura" : "Introduza a sua palavra-passe"}
+            autoComplete={isRegister ? "new-password" : "current-password"}
+            aria-describedby={isRegister ? "password-hint" : undefined}
             minLength={isRegister ? 8 : 1}
             required
           />
           {isRegister ? (
-            <small className="auth-card__hint">
+            <small id="password-hint" className="auth-card__hint">
               Mínimo 8 caracteres, com maiúscula, minúscula e número.
             </small>
           ) : null}

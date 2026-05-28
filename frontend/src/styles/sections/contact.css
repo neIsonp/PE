@@ -143,10 +143,6 @@
   position: relative;
 }
 
-.c-form__group label {
-  font-size: 0;
-}
-
 /* Shared input styles */
 .c-form__input-wrap {
   position: relative;

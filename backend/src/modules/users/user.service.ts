@@ -1,5 +1,6 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 import { AppError } from "../../shared/app-error.js";
+import { buildPaginationMeta } from "../../shared/pagination.js";
 import type { UserRole } from "../../shared/roles.js";
 import { toPublicUser } from "./user.mapper.js";
 import type { UpdateProfileInput, UsersListQuery } from "./user.schemas.js";
@@ -10,47 +11,35 @@ function normalizeNullableText(value?: string | null) {
   return normalizedValue ? normalizedValue : null;
 }
 
-function makeMeta(page: number, limit: number, total: number) {
-  const totalPages = Math.max(1, Math.ceil(total / limit));
-
-  return {
-    page,
-    limit,
-    total,
-    totalPages,
-    hasNextPage: page < totalPages,
-    hasPreviousPage: page > 1
-  };
-}
-
 export class UserService {
   constructor(private readonly prisma: PrismaClient) {}
 
   async listUsers(query: UsersListQuery) {
+    const page = query.page;
+    const limit = query.limit;
     const search = query.search?.trim();
-    const where: Prisma.UserWhereInput = search
+    const where: Prisma.UserWhereInput | undefined = search
       ? {
           OR: [
-            { name: { contains: search, mode: "insensitive" } },
-            { email: { contains: search, mode: "insensitive" } }
+            { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            { email: { contains: search, mode: Prisma.QueryMode.insensitive } }
           ]
         }
-      : {};
-    const skip = (query.page - 1) * query.limit;
+      : undefined;
 
     const [users, total] = await this.prisma.$transaction([
       this.prisma.user.findMany({
         where,
         orderBy: { createdAt: "desc" },
-        skip,
-        take: query.limit
+        skip: (page - 1) * limit,
+        take: limit
       }),
       this.prisma.user.count({ where })
     ]);
 
     return {
       users: users.map(toPublicUser),
-      meta: makeMeta(query.page, query.limit, total)
+      meta: buildPaginationMeta({ page, limit, total })
     };
   }
 

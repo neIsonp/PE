@@ -6,15 +6,16 @@ import { CommunicationController } from "./communication.controller.js";
 import { CommunicationService } from "./communication.service.js";
 import {
   contactMessageBodySchema,
-  contactMessageParamsSchema,
+  contactListQuerySchema,
   contactMessageResponseSchema,
-  contactMessagesListQuerySchema,
   contactMessagesListResponseSchema,
+  contactStatusBodySchema,
+  contactStatusParamsSchema,
+  contactStatusResponseSchema,
   newsletterBodySchema,
+  newsletterListQuerySchema,
   newsletterSubscriptionResponseSchema,
-  newsletterSubscriptionsListQuerySchema,
-  newsletterSubscriptionsListResponseSchema,
-  updateContactMessageStatusBodySchema
+  newsletterSubscriptionsListResponseSchema
 } from "./communication.schemas.js";
 
 export async function communicationRoutes(app: FastifyInstance) {
@@ -50,7 +51,7 @@ export async function communicationRoutes(app: FastifyInstance) {
       schema: {
         tags: ["communications"],
         security: [{ bearerAuth: [] }],
-        querystring: contactMessagesListQuerySchema,
+        querystring: contactListQuerySchema,
         response: {
           200: contactMessagesListResponseSchema,
           401: errorResponseSchema,
@@ -68,10 +69,10 @@ export async function communicationRoutes(app: FastifyInstance) {
       schema: {
         tags: ["communications"],
         security: [{ bearerAuth: [] }],
-        params: contactMessageParamsSchema,
-        body: updateContactMessageStatusBodySchema,
+        params: contactStatusParamsSchema,
+        body: contactStatusBodySchema,
         response: {
-          200: contactMessageResponseSchema,
+          200: contactStatusResponseSchema,
           401: errorResponseSchema,
           403: errorResponseSchema,
           404: errorResponseSchema
@@ -109,7 +110,7 @@ export async function communicationRoutes(app: FastifyInstance) {
       schema: {
         tags: ["communications"],
         security: [{ bearerAuth: [] }],
-        querystring: newsletterSubscriptionsListQuerySchema,
+        querystring: newsletterListQuerySchema,
         response: {
           200: newsletterSubscriptionsListResponseSchema,
           401: errorResponseSchema,

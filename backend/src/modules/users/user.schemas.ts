@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paginationMetaSchema, paginationQuerySchema } from "../../shared/pagination.js";
 import { roleSchema } from "../../shared/zod.js";
 
 export const publicUserSchema = z.object({
@@ -41,19 +42,8 @@ export const userIdParamsSchema = z.object({
   id: z.string().min(1)
 });
 
-export const usersListQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(10),
-  search: z.string().trim().max(120).optional()
-});
-
-export const paginationMetaSchema = z.object({
-  page: z.number().int(),
-  limit: z.number().int(),
-  total: z.number().int(),
-  totalPages: z.number().int(),
-  hasNextPage: z.boolean(),
-  hasPreviousPage: z.boolean()
+export const usersListQuerySchema = paginationQuerySchema.extend({
+  search: z.string().trim().max(100).optional()
 });
 
 export const usersListResponseSchema = z.object({

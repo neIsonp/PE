@@ -12,6 +12,12 @@ enum UserRole {
   USER
 }
 
+enum ContactMessageStatus {
+  PENDING
+  READ
+  ARCHIVED
+}
+
 enum AuditAction {
   AUTH_REGISTER
   AUTH_LOGIN_SUCCESS

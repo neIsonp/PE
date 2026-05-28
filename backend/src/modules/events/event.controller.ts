@@ -2,12 +2,7 @@ import { AuditAction } from "@prisma/client";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { getAuditRequestContext, type AuditService } from "../audit/audit.service.js";
 import type { EventService } from "./event.service.js";
-import type { EventInput, EventParams, EventsListQuery } from "./event.schemas.js";
-
-type EventListRequest = FastifyRequest<{ Querystring: EventsListQuery }>;
-type EventParamsRequest = FastifyRequest<{ Params: EventParams }>;
-type EventBodyRequest = FastifyRequest<{ Body: EventInput }>;
-type EventUpdateRequest = FastifyRequest<{ Params: EventParams; Body: EventInput }>;
+import type { EventInput, EventListQuery, EventParams } from "./event.schemas.js";
 
 export class EventController {
   constructor(
@@ -15,20 +10,20 @@ export class EventController {
     private readonly auditService: AuditService
   ) {}
 
-  async listEvents(request: EventListRequest) {
-    const events = await this.eventService.listEvents(request.query);
+  async listEvents(request: FastifyRequest) {
+    const events = await this.eventService.listEvents(request.query as EventListQuery);
 
     return { events };
   }
 
-  async getEvent(request: EventParamsRequest) {
-    const event = await this.eventService.getEvent(request.params.id);
+  async getEvent(request: FastifyRequest) {
+    const event = await this.eventService.getEvent((request.params as EventParams).id);
 
     return { event };
   }
 
-  async createEvent(request: EventBodyRequest, reply: FastifyReply) {
-    const event = await this.eventService.createEvent(request.body, request.user.sub);
+  async createEvent(request: FastifyRequest, reply: FastifyReply) {
+    const event = await this.eventService.createEvent(request.body as EventInput, request.user.sub);
 
     await this.auditService.record(AuditAction.EVENT_CREATED, {
       actorId: request.user.sub,
@@ -45,10 +40,12 @@ export class EventController {
     return reply.code(201).send({ event });
   }
 
-  async updateEvent(request: EventUpdateRequest) {
+  async updateEvent(request: FastifyRequest) {
+    const params = request.params as EventParams;
+    const body = request.body as EventInput;
     const event = await this.eventService.updateEvent(
-      request.params.id,
-      request.body,
+      params.id,
+      body,
       request.user.sub,
       request.user.role
     );
@@ -68,13 +65,15 @@ export class EventController {
     return { event };
   }
 
-  async deleteEvent(request: EventParamsRequest, reply: FastifyReply) {
-    await this.eventService.deleteEvent(request.params.id, request.user.sub, request.user.role);
+  async deleteEvent(request: FastifyRequest, reply: FastifyReply) {
+    const params = request.params as EventParams;
+
+    await this.eventService.deleteEvent(params.id, request.user.sub, request.user.role);
 
     await this.auditService.record(AuditAction.EVENT_DELETED, {
       actorId: request.user.sub,
       actorEmail: request.user.email,
-      targetId: request.params.id,
+      targetId: params.id,
       targetType: "EVENT",
       ...getAuditRequestContext(request)
     });

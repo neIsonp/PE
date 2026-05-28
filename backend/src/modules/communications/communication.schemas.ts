@@ -1,20 +1,5 @@
 import { z } from "zod";
-
-export const contactMessageStatusSchema = z.enum(["PENDING", "READ", "ARCHIVED"]);
-
-export const paginationQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(10)
-});
-
-export const paginationMetaSchema = z.object({
-  page: z.number().int(),
-  limit: z.number().int(),
-  total: z.number().int(),
-  totalPages: z.number().int(),
-  hasNextPage: z.boolean(),
-  hasPreviousPage: z.boolean()
-});
+import { paginationMetaSchema, paginationQuerySchema } from "../../shared/pagination.js";
 
 export const contactMessageBodySchema = z.object({
   firstName: z.string().trim().min(2).max(80),
@@ -27,6 +12,8 @@ export const contactMessageBodySchema = z.object({
 export const newsletterBodySchema = z.object({
   email: z.string().trim().email().toLowerCase()
 });
+
+export const contactMessageStatusSchema = z.enum(["PENDING", "READ", "ARCHIVED"]);
 
 export const contactMessageSchema = z.object({
   id: z.string(),
@@ -63,23 +50,28 @@ export const newsletterSubscriptionsListResponseSchema = z.object({
   meta: paginationMetaSchema
 });
 
-export const contactMessagesListQuerySchema = paginationQuerySchema.extend({
+export const contactListQuerySchema = paginationQuerySchema.extend({
   status: contactMessageStatusSchema.optional()
 });
 
-export const newsletterSubscriptionsListQuerySchema = paginationQuerySchema;
+export const newsletterListQuerySchema = paginationQuerySchema;
 
-export const contactMessageParamsSchema = z.object({
+export const contactStatusParamsSchema = z.object({
   id: z.string().min(1)
 });
 
-export const updateContactMessageStatusBodySchema = z.object({
+export const contactStatusBodySchema = z.object({
   status: contactMessageStatusSchema
 });
 
+export const contactStatusResponseSchema = z.object({
+  message: contactMessageSchema
+});
+
 export type ContactMessageInput = z.infer<typeof contactMessageBodySchema>;
-export type ContactMessageListQuery = z.infer<typeof contactMessagesListQuerySchema>;
-export type ContactMessageParams = z.infer<typeof contactMessageParamsSchema>;
-export type ContactMessageStatusInput = z.infer<typeof updateContactMessageStatusBodySchema>;
 export type NewsletterInput = z.infer<typeof newsletterBodySchema>;
-export type NewsletterSubscriptionsListQuery = z.infer<typeof newsletterSubscriptionsListQuerySchema>;
+export type ContactMessageStatus = z.infer<typeof contactMessageStatusSchema>;
+export type ContactListQuery = z.infer<typeof contactListQuerySchema>;
+export type NewsletterListQuery = z.infer<typeof newsletterListQuerySchema>;
+export type ContactStatusParams = z.infer<typeof contactStatusParamsSchema>;
+export type ContactStatusInput = z.infer<typeof contactStatusBodySchema>;

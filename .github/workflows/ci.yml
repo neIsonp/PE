@@ -60,3 +60,15 @@ jobs:
 
       - name: Build application
         run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+        working-directory: frontend
+        continue-on-error: true
+
+      - name: Run E2E tests (optional)
+        run: npm run test:e2e --workspace frontend
+        env:
+          CI: "true"
+          NEXT_PUBLIC_API_URL: "http://localhost:3333/api"
+        continue-on-error: true

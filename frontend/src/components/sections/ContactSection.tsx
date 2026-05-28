@@ -14,12 +14,15 @@ export function ContactSection() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const firstName = String(form.get("first-name") ?? "");
-    const lastName = String(form.get("last-name") ?? "");
-    const email = String(form.get("email") ?? "");
-    const countryCode = String(form.get("country-code") ?? "");
-    const phone = String(form.get("phone") ?? "");
+    // Capture the form element before any await — React nullifies event.currentTarget
+    // after the synchronous portion of an async handler returns.
+    const formEl = event.currentTarget;
+    const formData = new FormData(formEl);
+    const firstName = String(formData.get("first-name") ?? "");
+    const lastName = String(formData.get("last-name") ?? "");
+    const email = String(formData.get("email") ?? "");
+    const countryCode = String(formData.get("country-code") ?? "");
+    const phone = String(formData.get("phone") ?? "");
 
     if (!email.includes("@") || phone.replace(/\D/g, "").length < 6) {
       setFeedback({
@@ -41,7 +44,7 @@ export function ContactSection() {
         type: "success",
         message: "Mensagem enviada e registada na API."
       });
-      event.currentTarget.reset();
+      formEl.reset();
       setMessage("");
     } catch (error) {
       setFeedback({

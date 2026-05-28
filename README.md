@@ -9,7 +9,7 @@ Refatorização e desenvolvimento da aplicação web do Centro Académico Clíni
 - **Nelson Pacheco Ponte** — 2024109237
 - **Adriano Furtado Arruda** — 2024111815
 - **David Cardoso** — número de aluno por preencher
-- **Puțan Iulia** — número de aluno por preencher
+- **Puțan Iulia** — 2025128950
 
 ## Tecnologias Escolhidas
 

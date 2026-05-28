@@ -25,6 +25,10 @@ export const eventParamsSchema = z.object({
   id: z.string().min(1)
 });
 
+export const eventListQuerySchema = z.object({
+  period: z.enum(["upcoming", "past"]).optional()
+});
+
 export const publicEventSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -47,3 +51,4 @@ export const eventsListResponseSchema = z.object({
 
 export type EventInput = z.infer<typeof eventBodySchema>;
 export type EventParams = z.infer<typeof eventParamsSchema>;
+export type EventListQuery = z.infer<typeof eventListQuerySchema>;

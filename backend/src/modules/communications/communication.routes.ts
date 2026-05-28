@@ -6,9 +6,14 @@ import { CommunicationController } from "./communication.controller.js";
 import { CommunicationService } from "./communication.service.js";
 import {
   contactMessageBodySchema,
+  contactListQuerySchema,
   contactMessageResponseSchema,
   contactMessagesListResponseSchema,
+  contactStatusBodySchema,
+  contactStatusParamsSchema,
+  contactStatusResponseSchema,
   newsletterBodySchema,
+  newsletterListQuerySchema,
   newsletterSubscriptionResponseSchema,
   newsletterSubscriptionsListResponseSchema
 } from "./communication.schemas.js";
@@ -46,6 +51,7 @@ export async function communicationRoutes(app: FastifyInstance) {
       schema: {
         tags: ["communications"],
         security: [{ bearerAuth: [] }],
+        querystring: contactListQuerySchema,
         response: {
           200: contactMessagesListResponseSchema,
           401: errorResponseSchema,
@@ -54,6 +60,26 @@ export async function communicationRoutes(app: FastifyInstance) {
       }
     },
     (request) => communicationController.listContactMessages(request)
+  );
+
+  routes.patch(
+    "/contact/:id/status",
+    {
+      preHandler: [app.authenticate],
+      schema: {
+        tags: ["communications"],
+        security: [{ bearerAuth: [] }],
+        params: contactStatusParamsSchema,
+        body: contactStatusBodySchema,
+        response: {
+          200: contactStatusResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema
+        }
+      }
+    },
+    (request) => communicationController.updateContactMessageStatus(request)
   );
 
   routes.post(
@@ -84,6 +110,7 @@ export async function communicationRoutes(app: FastifyInstance) {
       schema: {
         tags: ["communications"],
         security: [{ bearerAuth: [] }],
+        querystring: newsletterListQuerySchema,
         response: {
           200: newsletterSubscriptionsListResponseSchema,
           401: errorResponseSchema,

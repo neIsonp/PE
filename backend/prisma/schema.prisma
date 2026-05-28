@@ -12,6 +12,12 @@ enum UserRole {
   USER
 }
 
+enum ContactMessageStatus {
+  PENDING
+  READ
+  ARCHIVED
+}
+
 enum AuditAction {
   AUTH_REGISTER
   AUTH_LOGIN_SUCCESS
@@ -64,9 +70,11 @@ model ContactMessage {
   email     String
   phone     String
   message   String
+  status    ContactMessageStatus @default(PENDING)
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+  @@index([status, createdAt])
   @@map("contact_messages")
 }
 

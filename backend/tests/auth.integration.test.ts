@@ -49,6 +49,34 @@ async function registerUser(email: string) {
   };
 }
 
+async function createAdminAndLogin() {
+  const password = "Admin2026";
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  const admin = await app.prisma.user.create({
+    data: {
+      name: "Administrador CACA",
+      email: `admin-${randomUUID()}@caca.pt`,
+      passwordHash,
+      role: "ADMIN"
+    }
+  });
+
+  const adminLoginResponse = await app.inject({
+    method: "POST",
+    url: "/api/auth/login",
+    payload: {
+      email: admin.email,
+      password
+    }
+  });
+
+  return {
+    admin,
+    body: JSON.parse(adminLoginResponse.body) as AuthBody
+  };
+}
+
 describe("auth, users, events and communications API", () => {
   beforeAll(async () => {
     process.env.NODE_ENV = "test";
@@ -156,7 +184,7 @@ describe("auth, users, events and communications API", () => {
       orderBy: { createdAt: "asc" }
     });
 
-    expect(auditActions.map((entry) => entry.action)).toEqual(
+    expect(auditActions.map((entry: { action: string }) => entry.action)).toEqual(
       expect.arrayContaining(["AUTH_REGISTER", "AUTH_LOGIN_SUCCESS", "AUTH_LOGIN_FAILURE"])
     );
   });
@@ -175,38 +203,44 @@ describe("auth, users, events and communications API", () => {
 
     expect(forbiddenResponse.statusCode).toBe(403);
 
-    const passwordHash = await bcrypt.hash("Admin2026", 10);
-    await app.prisma.user.create({
-      data: {
-        name: "Administrador CACA",
-        email: `admin-${randomUUID()}@caca.pt`,
-        passwordHash,
-        role: "ADMIN"
-      }
-    });
-
-    const admin = await app.prisma.user.findFirstOrThrow({ where: { role: "ADMIN" } });
-    const adminLoginResponse = await app.inject({
-      method: "POST",
-      url: "/api/auth/login",
-      payload: {
-        email: admin.email,
-        password: "Admin2026"
-      }
-    });
-    const adminLoginBody = JSON.parse(adminLoginResponse.body) as AuthBody;
+    const { body: adminLoginBody } = await createAdminAndLogin();
 
     const usersResponse = await app.inject({
       method: "GET",
-      url: "/api/users",
+      url: "/api/users?page=1&limit=1",
       headers: {
         authorization: `Bearer ${adminLoginBody.token}`
       }
     });
-    const usersBody = JSON.parse(usersResponse.body) as { users: AuthBody["user"][] };
+    const usersBody = JSON.parse(usersResponse.body) as {
+      users: AuthBody["user"][];
+      meta: { page: number; limit: number; total: number; totalPages: number };
+    };
 
     expect(usersResponse.statusCode).toBe(200);
-    expect(usersBody.users.length).toBeGreaterThanOrEqual(2);
+    expect(usersBody.users).toHaveLength(1);
+    expect(usersBody.meta).toMatchObject({
+      page: 1,
+      limit: 1,
+      total: 2,
+      totalPages: 2
+    });
+
+    const searchResponse = await app.inject({
+      method: "GET",
+      url: `/api/users?page=1&limit=10&search=${encodeURIComponent(email)}`,
+      headers: {
+        authorization: `Bearer ${adminLoginBody.token}`
+      }
+    });
+    const searchBody = JSON.parse(searchResponse.body) as {
+      users: AuthBody["user"][];
+      meta: { total: number };
+    };
+
+    expect(searchResponse.statusCode).toBe(200);
+    expect(searchBody.meta.total).toBe(1);
+    expect(searchBody.users[0]?.email).toBe(email);
 
     const promoteResponse = await app.inject({
       method: "PATCH",
@@ -317,7 +351,7 @@ describe("auth, users, events and communications API", () => {
       orderBy: { createdAt: "asc" }
     });
 
-    expect(eventAuditActions.map((entry) => entry.action)).toEqual([
+    expect(eventAuditActions.map((entry: { action: string }) => entry.action)).toEqual([
       "EVENT_CREATED",
       "EVENT_UPDATED",
       "EVENT_DELETED"
@@ -358,5 +392,182 @@ describe("auth, users, events and communications API", () => {
     });
 
     expect(duplicateNewsletterResponse.statusCode).toBe(409);
+  });
+
+  it("permite a admins gerir estados de mensagens e listar dados paginados", async () => {
+    const firstContactResponse = await app.inject({
+      method: "POST",
+      url: "/api/contact",
+      payload: {
+        firstName: "Ana",
+        lastName: "Costa",
+        email: "ana@example.com",
+        phone: "+351 911111111",
+        message: "Gostaria de falar sobre uma parceria institucional."
+      }
+    });
+    const firstContactBody = JSON.parse(firstContactResponse.body) as {
+      message: { id: string; status: "PENDING" | "READ" | "ARCHIVED" };
+    };
+
+    await app.inject({
+      method: "POST",
+      url: "/api/contact",
+      payload: {
+        firstName: "Bruno",
+        lastName: "Silva",
+        email: "bruno@example.com",
+        phone: "+351 922222222",
+        message: "Preciso de informacoes sobre os vossos eventos."
+      }
+    });
+
+    await app.inject({
+      method: "POST",
+      url: "/api/newsletter",
+      payload: {
+        email: "newsletter-1@example.com"
+      }
+    });
+
+    await app.inject({
+      method: "POST",
+      url: "/api/newsletter",
+      payload: {
+        email: "newsletter-2@example.com"
+      }
+    });
+
+    const { body: userBody } = await registerUser(`member-${randomUUID()}@caca.pt`);
+
+    const forbiddenStatusUpdateResponse = await app.inject({
+      method: "PATCH",
+      url: `/api/contact/${firstContactBody.message.id}/status`,
+      headers: {
+        authorization: `Bearer ${userBody.token}`
+      },
+      payload: {
+        status: "READ"
+      }
+    });
+
+    expect(forbiddenStatusUpdateResponse.statusCode).toBe(403);
+
+    const { body: adminLoginBody } = await createAdminAndLogin();
+
+    const updateStatusResponse = await app.inject({
+      method: "PATCH",
+      url: `/api/contact/${firstContactBody.message.id}/status`,
+      headers: {
+        authorization: `Bearer ${adminLoginBody.token}`
+      },
+      payload: {
+        status: "READ"
+      }
+    });
+    const updateStatusBody = JSON.parse(updateStatusResponse.body) as {
+      message: { id: string; status: "PENDING" | "READ" | "ARCHIVED" };
+    };
+
+    expect(updateStatusResponse.statusCode).toBe(200);
+    expect(updateStatusBody.message.status).toBe("READ");
+
+    const filteredMessagesResponse = await app.inject({
+      method: "GET",
+      url: "/api/contact?page=1&limit=10&status=READ",
+      headers: {
+        authorization: `Bearer ${adminLoginBody.token}`
+      }
+    });
+    const filteredMessagesBody = JSON.parse(filteredMessagesResponse.body) as {
+      messages: Array<{ id: string; status: string }>;
+      meta: { total: number; totalPages: number; hasNextPage: boolean };
+    };
+
+    expect(filteredMessagesResponse.statusCode).toBe(200);
+    expect(filteredMessagesBody.messages).toHaveLength(1);
+    expect(filteredMessagesBody.messages[0]?.id).toBe(firstContactBody.message.id);
+    expect(filteredMessagesBody.meta).toMatchObject({
+      total: 1,
+      totalPages: 1,
+      hasNextPage: false
+    });
+
+    const newsletterListResponse = await app.inject({
+      method: "GET",
+      url: "/api/newsletter?page=1&limit=1",
+      headers: {
+        authorization: `Bearer ${adminLoginBody.token}`
+      }
+    });
+    const newsletterListBody = JSON.parse(newsletterListResponse.body) as {
+      subscriptions: Array<{ email: string }>;
+      meta: { page: number; limit: number; total: number; totalPages: number };
+    };
+
+    expect(newsletterListResponse.statusCode).toBe(200);
+    expect(newsletterListBody.subscriptions).toHaveLength(1);
+    expect(newsletterListBody.meta).toMatchObject({
+      page: 1,
+      limit: 1,
+      total: 2,
+      totalPages: 2
+    });
+  });
+
+  it("filtra eventos passados e futuros corretamente", async () => {
+    const { body } = await registerUser(`period-${randomUUID()}@caca.pt`);
+
+    await app.inject({
+      method: "POST",
+      url: "/api/events",
+      headers: {
+        authorization: `Bearer ${body.token}`
+      },
+      payload: {
+        title: "Evento Futuro",
+        date: "2099-01-01",
+        time: "09:00",
+        location: "Faial,PT",
+        description: "Sessao futura."
+      }
+    });
+
+    await app.inject({
+      method: "POST",
+      url: "/api/events",
+      headers: {
+        authorization: `Bearer ${body.token}`
+      },
+      payload: {
+        title: "Evento Passado",
+        date: "2020-01-01",
+        time: "09:00",
+        location: "Pico,PT",
+        description: "Sessao passada."
+      }
+    });
+
+    const upcomingResponse = await app.inject({
+      method: "GET",
+      url: "/api/events?period=upcoming"
+    });
+    const upcomingBody = JSON.parse(upcomingResponse.body) as {
+      events: Array<{ title: string }>;
+    };
+
+    expect(upcomingResponse.statusCode).toBe(200);
+    expect(upcomingBody.events.map((event) => event.title)).toEqual(["Evento Futuro"]);
+
+    const pastResponse = await app.inject({
+      method: "GET",
+      url: "/api/events?period=past"
+    });
+    const pastBody = JSON.parse(pastResponse.body) as {
+      events: Array<{ title: string }>;
+    };
+
+    expect(pastResponse.statusCode).toBe(200);
+    expect(pastBody.events.map((event) => event.title)).toEqual(["Evento Passado"]);
   });
 });

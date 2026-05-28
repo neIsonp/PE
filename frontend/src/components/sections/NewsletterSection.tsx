@@ -39,13 +39,15 @@ export function NewsletterSection() {
         </div>
 
         <form id="newsletter-form" className="newsletter-new-form" onSubmit={handleSubmit}>
+          <label className="newsletter-new-label" htmlFor="news-email">
+            Email para newsletter
+          </label>
           <div className="newsletter-new-form__pill">
             <input
               type="email"
               id="news-email"
               className="newsletter-new-input"
               placeholder="nome@email.com"
-              aria-label="Email para newsletter"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required

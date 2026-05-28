@@ -7,6 +7,34 @@ type ApiErrorBody = {
   message?: string;
 };
 
+export type PaginationMeta = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+};
+
+export type ContactMessageStatus = "PENDING" | "READ" | "ARCHIVED";
+
+export type ContactMessage = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  message: string;
+  status: ContactMessageStatus;
+  createdAt: string;
+};
+
+export type NewsletterSubscription = {
+  id: string;
+  email: string;
+  createdAt: string;
+};
+
 export class ApiClientError extends Error {
   constructor(
     message: string,
@@ -68,6 +96,20 @@ async function requestVoid(path: string, init?: RequestInit) {
   }
 }
 
+function withQuery(path: string, params: Record<string, string | number | undefined>) {
+  const query = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== "") {
+      query.set(key, String(value));
+    }
+  });
+
+  const queryString = query.toString();
+
+  return queryString ? `${path}?${queryString}` : path;
+}
+
 export function registerUser(input: {
   name: string;
   email: string;
@@ -106,8 +148,8 @@ export function updateCurrentUser(input: {
   });
 }
 
-export function listUsers() {
-  return requestJson<{ users: PublicUser[] }>("/users", {
+export function listUsers(params: { page?: number; limit?: number; search?: string } = {}) {
+  return requestJson<{ users: PublicUser[]; meta: PaginationMeta }>(withQuery("/users", params), {
     headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente.")
   });
 }
@@ -120,8 +162,8 @@ export function updateUserRole(id: string, role: PublicUser["role"]) {
   });
 }
 
-export function fetchEvents() {
-  return requestJson<{ events: CacaEvent[] }>("/events");
+export function fetchEvents(params: { period?: "upcoming" | "past" } = {}) {
+  return requestJson<{ events: CacaEvent[] }>(withQuery("/events", params));
 }
 
 export function createEvent(input: Omit<CacaEvent, "id" | "createdAt" | "updatedAt" | "createdById">) {
@@ -167,26 +209,30 @@ export function subscribeNewsletter(email: string) {
   });
 }
 
-export function listContactMessages() {
+export function listContactMessages(
+  params: { page?: number; limit?: number; status?: ContactMessageStatus } = {}
+) {
   return requestJson<{
-    messages: Array<{
-      id: string;
-      firstName: string;
-      lastName: string;
-      email: string;
-      phone: string;
-      message: string;
-      createdAt: string;
-    }>;
-  }>("/contact", {
+    messages: ContactMessage[];
+    meta: PaginationMeta;
+  }>(withQuery("/contact", params), {
     headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente.")
   });
 }
 
-export function listNewsletterSubscriptions() {
+export function updateContactMessageStatus(id: string, status: ContactMessageStatus) {
+  return requestJson<{ message: ContactMessage }>(`/contact/${id}/status`, {
+    method: "PATCH",
+    headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente."),
+    body: JSON.stringify({ status })
+  });
+}
+
+export function listNewsletterSubscriptions(params: { page?: number; limit?: number } = {}) {
   return requestJson<{
-    subscriptions: Array<{ id: string; email: string; createdAt: string }>;
-  }>("/newsletter", {
+    subscriptions: NewsletterSubscription[];
+    meta: PaginationMeta;
+  }>(withQuery("/newsletter", params), {
     headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente.")
   });
 }

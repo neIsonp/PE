@@ -95,7 +95,7 @@ export function ContactSection() {
             <form className="c-form" aria-label="Formulário de contacto" onSubmit={handleSubmit}>
               <div className="c-form__row">
                 <div className="c-form__group">
-                  <label className="sr-only" htmlFor="first-name">
+                  <label className="form-group__label" htmlFor="first-name">
                     Primeiro nome
                   </label>
                   <div className="c-form__input-wrap">
@@ -110,7 +110,7 @@ export function ContactSection() {
                   </div>
                 </div>
                 <div className="c-form__group">
-                  <label className="sr-only" htmlFor="last-name">
+                  <label className="form-group__label" htmlFor="last-name">
                     Apelido
                   </label>
                   <div className="c-form__input-wrap">
@@ -127,7 +127,7 @@ export function ContactSection() {
               </div>
 
               <div className="c-form__group">
-                <label className="sr-only" htmlFor="email">
+                <label className="form-group__label" htmlFor="email">
                   Endereço de email
                 </label>
                 <div className="c-form__input-wrap">
@@ -144,41 +144,47 @@ export function ContactSection() {
               </div>
 
               <div className="c-form__group">
-                <label className="sr-only" htmlFor="phone">
-                  Telemóvel
-                </label>
                 <div className="c-form__phone-row">
-                  <div className="c-form__phone-select-wrap">
-                    <i className="fi fi-rr-phone-call c-form__icon" />
-                    <select
-                      id="country-code"
-                      name="country-code"
-                      className="c-form__phone-select"
-                      aria-label="Indicativo"
-                      defaultValue="+351"
-                    >
-                      <option value="+351">+351</option>
-                      <option value="+55">+55</option>
-                      <option value="+34">+34</option>
-                      <option value="+44">+44</option>
-                      <option value="+1">+1</option>
-                    </select>
+                  <div className="c-form__phone-field c-form__phone-field--code">
+                    <label className="form-group__label" htmlFor="country-code">
+                      Indicativo
+                    </label>
+                    <div className="c-form__phone-select-wrap">
+                      <i className="fi fi-rr-phone-call c-form__icon" />
+                      <select
+                        id="country-code"
+                        name="country-code"
+                        className="c-form__phone-select"
+                        defaultValue="+351"
+                      >
+                        <option value="+351">+351</option>
+                        <option value="+55">+55</option>
+                        <option value="+34">+34</option>
+                        <option value="+44">+44</option>
+                        <option value="+1">+1</option>
+                      </select>
+                    </div>
                   </div>
-                  <div className="c-form__input-wrap c-form__phone-input">
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      className="c-form__input c-form__input--no-icon"
-                      placeholder="Número de telemóvel"
-                      required
-                    />
+                  <div className="c-form__phone-field c-form__phone-field--number">
+                    <label className="form-group__label" htmlFor="phone">
+                      Telemóvel
+                    </label>
+                    <div className="c-form__input-wrap c-form__phone-input">
+                      <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        className="c-form__input c-form__input--no-icon"
+                        placeholder="Número de telemóvel"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="c-form__group">
-                <label className="sr-only" htmlFor="message">
+                <label className="form-group__label" htmlFor="message">
                   Mensagem
                 </label>
                 <div className="c-form__textarea-wrap">

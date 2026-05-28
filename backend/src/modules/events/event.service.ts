@@ -2,7 +2,7 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 import { AppError } from "../../shared/app-error.js";
 import type { UserRole } from "../../shared/roles.js";
 import { toPublicEvent } from "./event.mapper.js";
-import type { EventInput } from "./event.schemas.js";
+import type { EventInput, EventListQuery } from "./event.schemas.js";
 
 function normalizeDescription(description?: string | null) {
   const normalizedDescription = description?.trim();
@@ -13,8 +13,33 @@ function normalizeDescription(description?: string | null) {
 export class EventService {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async listEvents() {
+  async listEvents(query: EventListQuery = {}) {
+    const now = new Date();
+    const currentDate = now.toISOString().slice(0, 10);
+    const currentTime = now.toISOString().slice(11, 16);
+    const where =
+      query.period === "upcoming"
+        ? {
+            OR: [
+              { date: { gt: currentDate } },
+              {
+                AND: [{ date: currentDate }, { time: { gte: currentTime } }]
+              }
+            ]
+          }
+        : query.period === "past"
+          ? {
+              OR: [
+                { date: { lt: currentDate } },
+                {
+                  AND: [{ date: currentDate }, { time: { lt: currentTime } }]
+                }
+              ]
+            }
+          : undefined;
+
     const events = await this.prisma.event.findMany({
+      where,
       orderBy: [{ date: "asc" }, { time: "asc" }]
     });
 

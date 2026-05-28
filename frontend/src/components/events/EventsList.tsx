@@ -1,61 +1,50 @@
 import { islandLocations } from "@/data/events";
+import { EmptyState } from "@/components/ui/EmptyState";
 import type { CacaEvent } from "@/types/events";
 
 type EventsListProps = {
   events: CacaEvent[];
   canManage?: boolean;
   onEdit: (event: CacaEvent) => void;
-  onDelete: (id: string) => void;
+  onDelete: (event: CacaEvent) => void;
 };
 
 export function EventsList({ events, canManage = false, onEdit, onDelete }: EventsListProps) {
   if (events.length === 0) {
     return (
       <div className="research" id="events-list">
-        <article className="research__card" style={{ gridColumn: "span 12" }}>
-          <div className="research__content">
-            <h3 className="research__card-title">Sem eventos registados</h3>
-            <p className="research__card-text">Adicione o primeiro evento académico ou clínico do CACA.</p>
-          </div>
-        </article>
+        <div style={{ gridColumn: "span 12" }}>
+          <EmptyState
+            title="Sem eventos encontrados"
+            message="Não existem eventos para o filtro selecionado."
+          />
+        </div>
       </div>
     );
   }
 
   return (
-    <div id="events-list" className="research">
+    <div id="events-list" className="research events-results">
       {events.map((event) => {
         const location = islandLocations.find((item) => item.value === event.location);
 
         return (
-          <article className="research__card" style={{ display: "flex", flexDirection: "column" }} key={event.id}>
-            <div className="research__content" style={{ flexGrow: 1 }}>
+          <article className="research__card event-card" key={event.id}>
+            <div className="research__content">
               <h3 className="research__card-title">{event.title}</h3>
-              <p className="research__card-text" style={{ marginBottom: 15 }}>
-                <strong>
-                  📅 {event.date} às {event.time}
-                </strong>
-                <br />
-                📍 {location?.label ?? event.location}
+              <p className="research__card-text event-card__meta">
+                <strong>{event.date}</strong>
+                <span>{event.time}</span>
+                <span>{location?.label ?? event.location}</span>
               </p>
               {event.description ? <p className="research__card-text">{event.description}</p> : null}
             </div>
             {canManage ? (
               <div className="event-actions">
-                <button
-                  type="button"
-                  onClick={() => onEdit(event)}
-                  className="btn btn--outline"
-                  style={{ fontSize: "0.85rem", padding: "8px 16px" }}
-                >
+                <button type="button" onClick={() => onEdit(event)} className="btn btn--outline event-actions__button">
                   Editar
                 </button>
-                <button
-                  type="button"
-                  onClick={() => onDelete(event.id)}
-                  className="btn"
-                  style={{ background: "#eef2f6", color: "#e11d48", fontSize: "0.85rem", padding: "8px 16px" }}
-                >
+                <button type="button" onClick={() => onDelete(event)} className="btn btn--danger event-actions__button">
                   Eliminar
                 </button>
               </div>

@@ -4,10 +4,11 @@ import { AppError } from "../../shared/app-error.js";
 import { assertRole } from "../../shared/authorization.js";
 import { getAuditRequestContext, type AuditService } from "../audit/audit.service.js";
 import type { UserService } from "./user.service.js";
-import type { UpdateProfileInput, UpdateRoleInput, UserIdParams } from "./user.schemas.js";
-
-type UpdateProfileRequest = FastifyRequest<{ Body: UpdateProfileInput }>;
-type UpdateRoleRequest = FastifyRequest<{ Params: UserIdParams; Body: UpdateRoleInput }>;
+import type {
+  UpdateProfileInput,
+  UpdateRoleInput,
+  UsersListQuery
+} from "./user.schemas.js";
 
 export class UserController {
   constructor(
@@ -21,8 +22,8 @@ export class UserController {
     return { user };
   }
 
-  async updateMe(request: UpdateProfileRequest) {
-    const user = await this.userService.updateProfile(request.user.sub, request.body);
+  async updateMe(request: FastifyRequest) {
+    const user = await this.userService.updateProfile(request.user.sub, request.body as UpdateProfileInput);
 
     return { user };
   }
@@ -30,19 +31,21 @@ export class UserController {
   async listUsers(request: FastifyRequest) {
     assertRole(request.user.role, ["ADMIN"], "Apenas administradores podem listar utilizadores.");
 
-    const users = await this.userService.listUsers();
+    const result = await this.userService.listUsers(request.query as UsersListQuery);
 
-    return { users };
+    return result;
   }
 
-  async updateRole(request: UpdateRoleRequest) {
+  async updateRole(request: FastifyRequest) {
     assertRole(request.user.role, ["ADMIN"], "Apenas administradores podem alterar permissões.");
+    const params = request.params as { id: string };
+    const body = request.body as UpdateRoleInput;
 
-    if (request.params.id === request.user.sub && request.body.role !== "ADMIN") {
+    if (params.id === request.user.sub && body.role !== "ADMIN") {
       throw new AppError(400, "Não é possível remover a própria permissão de administrador.");
     }
 
-    const user = await this.userService.updateRole(request.params.id, request.body.role);
+    const user = await this.userService.updateRole(params.id, body.role);
 
     await this.auditService.record(AuditAction.USER_ROLE_UPDATED, {
       actorId: request.user.sub,

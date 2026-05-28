@@ -54,6 +54,20 @@ async function main() {
       email: "newsletter@caca.uac.pt"
     }
   });
+
+  await prisma.contactMessage.upsert({
+    where: { id: "seed-contact-pending" },
+    update: {},
+    create: {
+      id: "seed-contact-pending",
+      firstName: "Maria",
+      lastName: "Silva",
+      email: "maria.silva@example.com",
+      phone: "+351 296 000 000",
+      message: "Gostaria de receber mais informações sobre os próximos eventos do CACA.",
+      status: "PENDING"
+    }
+  });
 }
 
 main()

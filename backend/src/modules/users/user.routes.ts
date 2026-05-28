@@ -9,6 +9,7 @@ import {
   updateRoleBodySchema,
   userIdParamsSchema,
   userResponseSchema,
+  usersListQuerySchema,
   usersListResponseSchema
 } from "./user.schemas.js";
 
@@ -59,6 +60,7 @@ export async function userRoutes(app: FastifyInstance) {
       schema: {
         tags: ["users"],
         security: [{ bearerAuth: [] }],
+        querystring: usersListQuerySchema,
         response: {
           200: usersListResponseSchema,
           401: errorResponseSchema,

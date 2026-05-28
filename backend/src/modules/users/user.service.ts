@@ -1,8 +1,9 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 import { AppError } from "../../shared/app-error.js";
+import { buildPaginationMeta } from "../../shared/pagination.js";
 import type { UserRole } from "../../shared/roles.js";
 import { toPublicUser } from "./user.mapper.js";
-import type { UpdateProfileInput } from "./user.schemas.js";
+import type { UpdateProfileInput, UsersListQuery } from "./user.schemas.js";
 
 function normalizeNullableText(value?: string | null) {
   const normalizedValue = value?.trim();
@@ -13,12 +14,33 @@ function normalizeNullableText(value?: string | null) {
 export class UserService {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async listUsers() {
-    const users = await this.prisma.user.findMany({
-      orderBy: { createdAt: "desc" }
-    });
+  async listUsers(query: UsersListQuery) {
+    const page = query.page;
+    const limit = query.limit;
+    const search = query.search?.trim();
+    const where: Prisma.UserWhereInput | undefined = search
+      ? {
+          OR: [
+            { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            { email: { contains: search, mode: Prisma.QueryMode.insensitive } }
+          ]
+        }
+      : undefined;
 
-    return users.map(toPublicUser);
+    const [users, total] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit
+      }),
+      this.prisma.user.count({ where })
+    ]);
+
+    return {
+      users: users.map(toPublicUser),
+      meta: buildPaginationMeta({ page, limit, total })
+    };
   }
 
   async getUserById(id: string) {

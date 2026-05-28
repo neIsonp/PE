@@ -8,6 +8,14 @@ type OpenMeteoResponse = {
   };
 };
 
+type ForecastInput = {
+  date: string;
+  time: string;
+  venue?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+};
+
 const weatherLabels: Record<number, string> = {
   0: "céu limpo",
   1: "maioritariamente limpo",
@@ -27,16 +35,17 @@ const weatherLabels: Record<number, string> = {
   95: "trovoada"
 };
 
-export async function getForecast(locationValue: string, date: string, time: string) {
-  const location = islandLocations.find((item) => item.value === locationValue);
+export async function getForecast(input: ForecastInput) {
+  const latitude = input.latitude;
+  const longitude = input.longitude;
 
-  if (!location) {
-    throw new Error("Localização inválida.");
+  if (latitude == null || longitude == null) {
+    throw new Error("Localização inválida. Indique as coordenadas no mapa.");
   }
 
   const url = new URL("https://api.open-meteo.com/v1/forecast");
-  url.searchParams.set("latitude", String(location.latitude));
-  url.searchParams.set("longitude", String(location.longitude));
+  url.searchParams.set("latitude", String(latitude));
+  url.searchParams.set("longitude", String(longitude));
   url.searchParams.set("hourly", "temperature_2m,weather_code");
   url.searchParams.set("timezone", "Atlantic/Azores");
   url.searchParams.set("forecast_days", "16");
@@ -48,7 +57,7 @@ export async function getForecast(locationValue: string, date: string, time: str
   }
 
   const data = (await response.json()) as OpenMeteoResponse;
-  const target = `${date}T${time.slice(0, 2)}:00`;
+  const target = `${input.date}T${input.time.slice(0, 2)}:00`;
   const index = data.hourly?.time.findIndex((entry) => entry === target) ?? -1;
 
   if (index < 0 || !data.hourly) {
@@ -61,6 +70,6 @@ export async function getForecast(locationValue: string, date: string, time: str
   return {
     temperature,
     label: weatherLabels[code] ?? "condições variáveis",
-    locationLabel: location.label
+    locationLabel: input.venue?.trim() || "Local selecionado"
   };
 }

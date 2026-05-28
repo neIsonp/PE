@@ -1,14 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { EventForm } from "./EventForm";
 import { EventsList } from "./EventsList";
-import { EventsMap } from "@/components/map/EventsMap";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { LoadingState } from "@/components/ui/LoadingState";
-import { createEvent, deleteEvent, fetchEvents, updateEvent } from "@/lib/api-client";
-import { getToken } from "@/lib/storage";
+import { createEvent, deleteEvent, fetchMyEvents, updateEvent } from "@/lib/api-client";
 import type { CacaEvent } from "@/types/events";
 
 type Feedback = {
@@ -24,6 +21,9 @@ function toEventPayload(event: CacaEvent) {
     date: event.date,
     time: event.time,
     location: event.location,
+    venue: event.venue ?? null,
+    latitude: event.latitude ?? null,
+    longitude: event.longitude ?? null,
     description: event.description ?? ""
   };
 }
@@ -34,13 +34,9 @@ export function EventsManager() {
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [period, setPeriod] = useState<EventPeriod>("upcoming");
   const [eventToDelete, setEventToDelete] = useState<CacaEvent | null>(null);
-
-  useEffect(() => {
-    setIsAuthenticated(Boolean(getToken()));
-  }, []);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
 
   useEffect(() => {
     void refreshEvents();
@@ -48,13 +44,14 @@ export function EventsManager() {
 
   async function refreshEvents() {
     setIsLoading(true);
+
     try {
-      const response = await fetchEvents({ period: period === "all" ? undefined : period });
+      const response = await fetchMyEvents({ period: period === "all" ? undefined : period });
       setEvents(response.events);
     } catch (error) {
       setFeedback({
         type: "error",
-        message: error instanceof Error ? error.message : "Não foi possível carregar eventos."
+        message: error instanceof Error ? error.message : "Não foi possível carregar os seus eventos."
       });
     } finally {
       setIsLoading(false);
@@ -81,9 +78,10 @@ export function EventsManager() {
             );
       });
       setEditingEvent(null);
+      setIsFormModalOpen(false);
       setFeedback({
         type: "success",
-        message: editingEvent ? "Evento atualizado na API." : "Evento criado na API."
+        message: editingEvent ? "Evento atualizado na sua área pessoal." : "Evento criado na sua área pessoal."
       });
       await refreshEvents();
     } catch (error) {
@@ -118,88 +116,65 @@ export function EventsManager() {
     }
   }
 
+
+
   return (
-    <>
-      <section className="section events-page">
-        <div className="container">
-          <h1 className="section__title">Gestão de Eventos</h1>
-          <p className="section__description">
-            Adicione e gira os eventos académicos e clínicos do CACA através da API.
-          </p>
+    <section id="meus-eventos" className="profile-events-panel" aria-labelledby="meus-eventos-title">
 
-          {feedback ? (
-            <p className={`form-feedback form-feedback--${feedback.type}`} role="status" aria-live="polite">
-              {feedback.message}
-            </p>
-          ) : null}
 
-          {!isAuthenticated ? (
-            <div className="form-feedback form-feedback--info" role="note">
-              Os eventos são públicos, mas para criar, editar ou eliminar precisa de{" "}
-              <Link href="/login">iniciar sessão</Link>.
-            </div>
-          ) : null}
+      {feedback ? (
+        <p className={`form-feedback form-feedback--${feedback.type}`} role="status" aria-live="polite">
+          {feedback.message}
+        </p>
+      ) : null}
 
-          <EventForm
-            editingEvent={editingEvent}
-            isDisabled={!isAuthenticated}
-            onSave={saveEvent}
-            onCancelEdit={() => setEditingEvent(null)}
-          />
-
-          <hr className="events-divider" />
-
-          <div className="events-list-header">
-            <h3 className="c-form__title events-list-header__title">
-              Eventos
-            </h3>
-            <div className="events-filter" role="group" aria-label="Filtrar eventos por período">
-              {[
-                ["upcoming", "Próximos"],
-                ["past", "Passados"],
-                ["all", "Todos"]
-              ].map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  className="events-filter__button"
-                  aria-pressed={period === value}
-                  onClick={() => setPeriod(value as EventPeriod)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+      <div className="profile-events-container">
+        <div className="events-filter" role="group" aria-label="Filtrar os meus eventos por período" style={{ marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            {[
+              ["upcoming", "Próximos"],
+              ["past", "Passados"],
+              ["all", "Todos"]
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className="events-filter__button"
+                aria-pressed={period === value}
+                onClick={() => setPeriod(value as EventPeriod)}
+              >
+                {label}
+              </button>
+            ))}
           </div>
-
-          {isLoading ? (
-            <LoadingState title="A carregar eventos" />
-          ) : (
-            <EventsList
-              events={events}
-              canManage={isAuthenticated}
-              onEdit={setEditingEvent}
-              onDelete={setEventToDelete}
-            />
-          )}
+          <button type="button" className="btn btn--primary" onClick={() => { setEditingEvent(null); setIsFormModalOpen(true); }}>
+            + Adicionar
+          </button>
         </div>
-      </section>
 
-      <section id="mapa-eventos" className="section events-map-section">
-        <div className="container events-map-layout">
-          <div className="events-map-copy">
-            <p className="events-map-eyebrow">Explorar</p>
-            <h2 className="events-map-title">Mapa de Eventos</h2>
-            <p className="events-map-description">
-              Visualize os eventos nas ilhas dos Açores com um enquadramento estável e uma leitura
-              mais clara da distribuição geográfica.
-            </p>
-          </div>
-          <div className="events-map-card">
-            <EventsMap events={events} />
+        {isLoading ? (
+          <p style={{ color: 'var(--cinza-500)', padding: '24px 0' }}>A carregar eventos...</p>
+        ) : (
+          <EventsList events={events} canManage onEdit={(evt) => { setEditingEvent(evt); setIsFormModalOpen(true); }} onDelete={setEventToDelete} />
+        )}
+      </div>
+
+      {isFormModalOpen && (
+        <div className="modal-overlay" role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}>
+          <div className="modal-content" style={{ background: 'white', borderRadius: '12px', width: '100%', maxWidth: '1000px', maxHeight: '90vh', overflowY: 'auto', padding: '48px 32px 32px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', position: 'relative' }}>
+            <button 
+              type="button" 
+              onClick={() => setIsFormModalOpen(false)} 
+              style={{ position: 'absolute', top: '16px', right: '16px', background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', lineHeight: '1', cursor: 'pointer', color: '#64748b', zIndex: 50 }} 
+              aria-label="Fechar"
+              title="Fechar formulário"
+            >
+              &times;
+            </button>
+            <EventForm editingEvent={editingEvent} onSave={saveEvent} onCancelEdit={() => setIsFormModalOpen(false)} />
           </div>
         </div>
-      </section>
+      )}
 
       <ConfirmDialog
         isOpen={Boolean(eventToDelete)}
@@ -210,6 +185,6 @@ export function EventsManager() {
         onCancel={() => setEventToDelete(null)}
         onConfirm={removeEvent}
       />
-    </>
+    </section>
   );
 }

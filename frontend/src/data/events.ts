@@ -73,6 +73,9 @@ export const seedEvents: CacaEvent[] = [
     date: "2026-06-12",
     time: "10:00",
     location: "Ponta Delgada,PT",
+    venue: "Universidade dos Açores, Anfiteatro VIII",
+    latitude: 37.745906,
+    longitude: -25.663789,
     description: "Sessão de partilha sobre plataformas digitais e cuidados de proximidade."
   },
   {
@@ -81,6 +84,9 @@ export const seedEvents: CacaEvent[] = [
     date: "2026-07-03",
     time: "14:30",
     location: "Terceira,PT",
+    venue: "Hospital de Santo Espírito da Ilha Terceira",
+    latitude: 38.656031,
+    longitude: -27.220575,
     description: "Oficina prática para estudantes e profissionais de saúde."
   }
 ];

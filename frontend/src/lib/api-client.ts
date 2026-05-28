@@ -166,6 +166,12 @@ export function fetchEvents(params: { period?: "upcoming" | "past" } = {}) {
   return requestJson<{ events: CacaEvent[] }>(withQuery("/events", params));
 }
 
+export function fetchMyEvents(params: { period?: "upcoming" | "past" } = {}) {
+  return requestJson<{ events: CacaEvent[] }>(withQuery("/events/mine", params), {
+    headers: getAuthHeaders("Inicie sessão para gerir os seus eventos.")
+  });
+}
+
 export function createEvent(input: Omit<CacaEvent, "id" | "createdAt" | "updatedAt" | "createdById">) {
   return requestJson<{ event: CacaEvent }>("/events", {
     method: "POST",

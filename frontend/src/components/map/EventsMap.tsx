@@ -10,6 +10,44 @@ type EventsMapProps = {
   mapId?: string;
 };
 
+function getMarkerPosition(event: CacaEvent) {
+  const location = islandLocations.find((item) => item.value === event.location);
+
+  if (event.latitude != null && event.longitude != null) {
+    return {
+      latitude: event.latitude,
+      longitude: event.longitude,
+      label: location?.label ?? event.location,
+      isExact: true
+    };
+  }
+
+  if (!location) {
+    return null;
+  }
+
+  return {
+    latitude: location.latitude,
+    longitude: location.longitude,
+    label: location.label,
+    isExact: false
+  };
+}
+
+function offsetDuplicateMarker(latitude: number, longitude: number, duplicateIndex: number) {
+  if (duplicateIndex === 0) {
+    return { latitude, longitude };
+  }
+
+  const angle = duplicateIndex * 1.35;
+  const radius = 0.008 + duplicateIndex * 0.002;
+
+  return {
+    latitude: latitude + Math.sin(angle) * radius,
+    longitude: longitude + Math.cos(angle) * radius
+  };
+}
+
 export function EventsMap({ events, mapId = "map" }: EventsMapProps) {
   useEffect(() => {
     let mapInstance: import("leaflet").Map | null = null;
@@ -46,26 +84,37 @@ export function EventsMap({ events, mapId = "map" }: EventsMapProps) {
       }).addTo(mapInstance);
 
       const markerPositions: [number, number][] = [];
+      const markerCounts = new Map<string, number>();
 
       events.forEach((event) => {
-        const location = islandLocations.find((item) => item.value === event.location);
+        const position = getMarkerPosition(event);
 
-        if (!location || !mapInstance) {
+        if (!position || !mapInstance) {
           return;
         }
 
-        markerPositions.push([location.latitude, location.longitude]);
+        const markerKey = `${position.latitude.toFixed(5)},${position.longitude.toFixed(5)}`;
+        const duplicateIndex = markerCounts.get(markerKey) ?? 0;
+        markerCounts.set(markerKey, duplicateIndex + 1);
+        const visiblePosition = offsetDuplicateMarker(position.latitude, position.longitude, duplicateIndex);
+        markerPositions.push([visiblePosition.latitude, visiblePosition.longitude]);
 
-        L.marker([location.latitude, location.longitude])
+        const venue = event.venue?.trim();
+        const locationLabel = venue
+          ? `${escapeHtml(venue)}<br><span>${escapeHtml(position.label)}</span>`
+          : escapeHtml(position.label);
+        const precisionLabel = position.isExact ? "Local exato" : "Local aproximado";
+
+        L.marker([visiblePosition.latitude, visiblePosition.longitude])
           .addTo(mapInstance)
           .bindPopup(
-            `<div class="map-popup-marker"><h4>${escapeHtml(event.title)}</h4><p>${escapeHtml(event.date)} às ${escapeHtml(event.time)}</p><p>${escapeHtml(location.label)}</p></div>`
+            `<div class="map-popup-marker"><h4>${escapeHtml(event.title)}</h4><p>${escapeHtml(event.date)} às ${escapeHtml(event.time)}</p><p>${locationLabel}</p><small>${precisionLabel}</small></div>`
           );
       });
 
       if (markerPositions.length > 0) {
         mapInstance.fitBounds(L.latLngBounds(markerPositions).pad(0.8), {
-          maxZoom: 9
+          maxZoom: 13
         });
       } else {
         mapInstance.fitBounds(azoresBounds, {

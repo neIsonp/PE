@@ -233,6 +233,12 @@
   flex-wrap: wrap;
 }
 
+.admin-row__label {
+  color: var(--cinza-600);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
 .admin-row div,
 .admin-card {
   display: grid;

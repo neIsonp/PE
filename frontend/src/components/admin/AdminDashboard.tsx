@@ -288,11 +288,14 @@ export function AdminDashboard() {
                     <span>{user.email}</span>
                   </div>
                   <div className="admin-row__actions">
+                    <label className="admin-row__label" htmlFor={`role-${user.id}`}>
+                      Permissão
+                    </label>
                     <select
+                      id={`role-${user.id}`}
                       className="c-form__input c-form__input--no-icon"
                       value={user.role}
                       onChange={(event) => handleRoleChange(user.id, event.target.value as PublicUser["role"])}
-                      aria-label={`Permissão de ${user.name}`}
                       disabled={user.id === currentUser.id || roleActionId === user.id}
                       title={user.id === currentUser.id ? "Não é possível alterar a própria permissão." : undefined}
                     >

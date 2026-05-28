@@ -45,6 +45,15 @@
   max-width: 520px;
 }
 
+.newsletter-new-label {
+  display: block;
+  margin: 0 0 10px 18px;
+  color: var(--azul-900);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: left;
+}
+
 .newsletter-new-form__pill {
   display: flex;
   align-items: center;

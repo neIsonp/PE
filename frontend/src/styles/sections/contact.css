@@ -139,7 +139,7 @@
 .c-form__group {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 8px;
   position: relative;
 }
 
@@ -193,14 +193,30 @@
 .c-form__phone-row {
   display: flex;
   gap: 12px;
+  align-items: flex-end;
+}
+
+.c-form__phone-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.c-form__phone-field--code {
+  width: 118px;
+  flex-shrink: 0;
+}
+
+.c-form__phone-field--number {
+  flex: 1;
+  min-width: 0;
 }
 
 .c-form__phone-select-wrap {
   position: relative;
   display: flex;
   align-items: center;
-  width: 110px;
-  flex-shrink: 0;
+  width: 100%;
 }
 
 .c-form__phone-select-wrap .c-form__icon {
@@ -232,6 +248,7 @@
 
 .c-form__phone-input {
   flex: 1;
+  width: 100%;
 }
 
 /* Textarea */

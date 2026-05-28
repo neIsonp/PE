@@ -28,6 +28,12 @@ enum AuditAction {
   EVENT_DELETED
 }
 
+enum ContactMessageStatus {
+  PENDING
+  READ
+  ARCHIVED
+}
+
 model User {
   id           String     @id @default(cuid())
   name         String

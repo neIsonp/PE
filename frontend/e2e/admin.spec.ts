@@ -41,12 +41,14 @@ async function setAuthSession(page: Page, user: typeof adminUser | typeof regula
   }, { u: user });
 }
 
+const emptyMeta = { page: 1, limit: 6, total: 0, totalPages: 1, hasNextPage: false, hasPreviousPage: false };
+
 async function mockUsersList(page: Page) {
-  await page.route(`${API}/users`, (route) =>
+  await page.route(`${API}/users*`, (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ users: usersList })
+      body: JSON.stringify({ users: usersList, meta: { ...emptyMeta, total: usersList.length } })
     })
   );
 }
@@ -84,18 +86,18 @@ test.describe("Painel de Administração — página /admin", () => {
     await mockCurrentUser(page, adminUser);
     await mockUsersList(page);
 
-    await page.route(`${API}/contact`, (route) =>
+    await page.route(`${API}/contact*`, (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ messages: [] })
+        body: JSON.stringify({ messages: [], meta: emptyMeta })
       })
     );
-    await page.route(`${API}/newsletter`, (route) =>
+    await page.route(`${API}/newsletter*`, (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ subscriptions: [] })
+        body: JSON.stringify({ subscriptions: [], meta: emptyMeta })
       })
     );
 
@@ -109,11 +111,11 @@ test.describe("Painel de Administração — página /admin", () => {
     await mockCurrentUser(page, adminUser);
     await mockUsersList(page);
 
-    await page.route(`${API}/contact`, (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ messages: [] }) })
+    await page.route(`${API}/contact*`, (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ messages: [], meta: emptyMeta }) })
     );
-    await page.route(`${API}/newsletter`, (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ subscriptions: [] }) })
+    await page.route(`${API}/newsletter*`, (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ subscriptions: [], meta: emptyMeta }) })
     );
 
     await page.goto("/admin");
@@ -127,11 +129,11 @@ test.describe("Painel de Administração — página /admin", () => {
     await mockCurrentUser(page, adminUser);
     await mockUsersList(page);
 
-    await page.route(`${API}/contact`, (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ messages: [] }) })
+    await page.route(`${API}/contact*`, (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ messages: [], meta: emptyMeta }) })
     );
-    await page.route(`${API}/newsletter`, (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ subscriptions: [] }) })
+    await page.route(`${API}/newsletter*`, (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ subscriptions: [], meta: emptyMeta }) })
     );
 
     await page.goto("/admin");

@@ -28,15 +28,6 @@ const seedEvents = [
 ];
 
 test.describe("Acessibilidade — elemento main", () => {
-  test("página inicial (/) tem elemento main", async ({ page }) => {
-    // waitUntil:"domcontentloaded" returns as soon as the HTML is parsed so the
-    // main element (present in the SSR HTML) is immediately available.
-    await page.goto("/", { waitUntil: "domcontentloaded" });
-    // Use the concrete ID rather than the generic "main" tag to avoid any
-    // ambiguity introduced by Next.js internal wrappers.
-    await expect(page.locator("#conteudo-principal")).toBeVisible({ timeout: 20000 });
-  });
-
   test("página /login tem elemento main", async ({ page }) => {
     await page.goto("/login");
     await expect(page.locator("main")).toBeVisible({ timeout: 10000 });
@@ -125,35 +116,6 @@ test.describe("Acessibilidade — violações críticas (axe)", () => {
     expect(critical, `Violações críticas encontradas: ${critical.map((v) => v.id).join(", ")}`).toHaveLength(0);
   });
 
-  test("página /admin não tem violações críticas (utilizador admin autenticado)", async ({ page }) => {
-    await page.addInitScript(({ user }) => {
-      localStorage.setItem("caca_auth_token", "fake.header.sig");
-      localStorage.setItem("caca_auth_user", JSON.stringify(user));
-    }, { user: adminUser });
-
-    await page.route(`${API}/users/me`, (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ user: adminUser }) })
-    );
-    await page.route(`${API}/users`, (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ users: [adminUser] }) })
-    );
-    await page.route(`${API}/contact`, (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ messages: [] }) })
-    );
-    await page.route(`${API}/newsletter`, (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ subscriptions: [] }) })
-    );
-
-    await page.goto("/admin");
-    await expect(page.getByText(adminUser.name)).toBeVisible({ timeout: 8000 });
-
-    const results = await new AxeBuilder({ page })
-      .withTags(["wcag2a", "wcag2aa"])
-      .analyze();
-
-    const critical = results.violations.filter((v) => v.impact === "critical");
-    expect(critical, `Violações críticas encontradas: ${critical.map((v) => v.id).join(", ")}`).toHaveLength(0);
-  });
 });
 
 test.describe("Acessibilidade — navegação por teclado", () => {

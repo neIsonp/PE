@@ -38,7 +38,7 @@ const adminUser = {
 };
 
 async function mockGetEvents(page: Page) {
-  await page.route(`${API}/events`, (route) => {
+  await page.route(`${API}/events*`, (route) => {
     if (route.request().method() !== "GET") {
       return route.fallback();
     }
@@ -95,7 +95,7 @@ test.describe("Gestão de Eventos — página /eventos", () => {
     };
 
     // Single route handler for both GET and POST
-    await page.route(`${API}/events`, async (route) => {
+    await page.route(`${API}/events*`, async (route) => {
       if (route.request().method() === "POST") {
         await route.fulfill({
           status: 201,
@@ -138,6 +138,10 @@ test.describe("Gestão de Eventos — página /eventos", () => {
     await page.goto("/eventos");
 
     await page.getByRole("button", { name: /eliminar/i }).first().click();
+
+    const dialog = page.getByRole("dialog");
+    await dialog.waitFor({ state: "visible" });
+    await dialog.getByRole("button", { name: "Eliminar" }).click();
 
     const feedbackStatus = page.locator('[role="status"]').last();
     await expect(feedbackStatus).toContainText("eliminado");

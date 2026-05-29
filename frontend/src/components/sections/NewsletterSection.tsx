@@ -48,6 +48,7 @@ export function NewsletterSection() {
               id="news-email"
               className="newsletter-new-input"
               placeholder="nome@email.com"
+              aria-label="Email para newsletter"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required

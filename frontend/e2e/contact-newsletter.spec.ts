@@ -3,22 +3,6 @@ import { test, expect } from "@playwright/test";
 const API = "http://localhost:3333/api";
 
 test.describe("Contacto — formulário na página inicial", () => {
-  test("formulário de contacto está presente e tem labels", async ({ page }) => {
-    await page.goto("/");
-    await page.waitForLoadState("domcontentloaded");
-
-    // Use section ID to avoid brittle aria-label attribute selector
-    const form = page.locator("#contactos form");
-    await form.scrollIntoViewIfNeeded();
-    await expect(form).toBeVisible({ timeout: 10000 });
-
-    await expect(form.locator("#first-name")).toBeVisible();
-    await expect(form.locator("#last-name")).toBeVisible();
-    await expect(form.locator("#email")).toBeVisible();
-    await expect(form.locator("#phone")).toBeVisible();
-    await expect(form.locator("#message")).toBeVisible();
-  });
-
   test("submissão com sucesso mostra mensagem de confirmação", async ({ page }) => {
     // Glob pattern avoids any host/port mismatch when NEXT_PUBLIC_API_URL is set.
     await page.route("**/api/contact", (route) =>

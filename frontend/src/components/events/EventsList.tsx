@@ -35,9 +35,11 @@ function formatDate(dateStr: string) {
   }
 }
 
+import { EmptyState } from "@/components/ui/EmptyState";
+
 export function EventsList({ events, canManage = false, onEdit, onDelete }: EventsListProps) {
   if (events.length === 0) {
-    return null;
+    return <EmptyState title="Nenhum evento encontrado" message="Não existem eventos para exibir neste momento." />;
   }
 
   return (

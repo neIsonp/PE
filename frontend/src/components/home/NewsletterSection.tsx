@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { subscribeNewsletter } from "@/lib/api-client";
+import { subscribeNewsletter } from "@/services/api";
 
 export function NewsletterSection() {
   const [email, setEmail] = useState("");

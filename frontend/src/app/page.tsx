@@ -1,14 +1,14 @@
-import { ContactSection } from "@/components/sections/ContactSection";
+import { ContactSection } from "@/components/home/ContactSection";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { Hero } from "@/components/sections/Hero";
-import { MapEventsSection } from "@/components/sections/MapEventsSection";
-import { NewsFeed } from "@/components/sections/NewsFeed";
-import { NewsletterSection } from "@/components/sections/NewsletterSection";
-import { Opportunities } from "@/components/sections/Opportunities";
-import { OpportunitiesChart } from "@/components/sections/OpportunitiesChart";
-import { Partners } from "@/components/sections/Partners";
-import { ResearchAreas } from "@/components/sections/ResearchAreas";
+import { Hero } from "@/components/home/Hero";
+import { MapEventsSection } from "@/components/home/MapEventsSection";
+import { NewsFeed } from "@/components/home/NewsFeed";
+import { NewsletterSection } from "@/components/home/NewsletterSection";
+import { Opportunities } from "@/components/home/Opportunities";
+import { OpportunitiesChart } from "@/components/home/OpportunitiesChart";
+import { Partners } from "@/components/home/Partners";
+import { ResearchAreas } from "@/components/home/ResearchAreas";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 
 export default function HomePage() {

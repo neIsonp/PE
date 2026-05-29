@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { submitContactMessage } from "@/lib/api-client";
+import { submitContactMessage } from "@/services/api";
 
 type Feedback = {
   type: "success" | "error";

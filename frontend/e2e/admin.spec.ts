@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 
-const API = "http://localhost:3333/api";
+const API = "**/api";
 
 const adminUser = {
   id: "seed-admin-id",
@@ -36,7 +36,7 @@ async function mockCurrentUser(page: Page, user: typeof adminUser | typeof regul
 
 async function setAuthSession(page: Page, user: typeof adminUser | typeof regularUser) {
   await page.addInitScript(({ u }) => {
-    localStorage.setItem("caca_auth_token", "fake.header.sig");
+    document.cookie = "caca_auth_token=fake.header.sig; path=/";
     localStorage.setItem("caca_auth_user", JSON.stringify(u));
   }, { u: user });
 }
@@ -58,7 +58,7 @@ test.describe("Painel de Administração — página /admin", () => {
     // Store a fake token so getCurrentUser() makes the HTTP request (instead of throwing
     // synchronously when there is no token). The mocked 401 then triggers the redirect.
     await page.addInitScript(() => {
-      localStorage.setItem("caca_auth_token", "fake.header.sig");
+      document.cookie = "caca_auth_token=fake.header.sig; path=/";
     });
 
     await page.route(`${API}/users/me`, (route) =>
@@ -146,8 +146,8 @@ test.describe("Painel de Administração — página /admin", () => {
 
     await page.goto("/perfil");
 
-    await expect(page.getByText(adminUser.name)).toBeVisible({ timeout: 8000 });
-    await expect(page.getByRole("button", { name: /Terminar sessão/i })).toBeVisible();
+    await expect(page.getByText("Bem-vindo, Administrador")).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole("button", { name: /Sair/i })).toBeVisible();
   });
 
   test("perfil — utilizador pode editar o nome no formulário de perfil", async ({ page }) => {
@@ -175,7 +175,7 @@ test.describe("Painel de Administração — página /admin", () => {
 
     await expect(page.locator("#name")).toBeVisible({ timeout: 8000 });
     await page.locator("#name").fill("Novo Nome Admin");
-    await page.getByRole("button", { name: /Guardar perfil/i }).click();
+    await page.getByRole("button", { name: /Atualizar perfil/i }).click();
 
     const feedbackStatus = page.getByRole("status");
     await expect(feedbackStatus).toContainText("atualizado", { timeout: 8000 });
@@ -185,7 +185,7 @@ test.describe("Painel de Administração — página /admin", () => {
     // Store a fake token so the HTTP request is made (otherwise getCurrentUser() throws
     // synchronously before any fetch, and the redirect never happens).
     await page.addInitScript(() => {
-      localStorage.setItem("caca_auth_token", "fake.header.sig");
+      document.cookie = "caca_auth_token=fake.header.sig; path=/";
     });
 
     await page.route(`${API}/users/me`, (route) =>

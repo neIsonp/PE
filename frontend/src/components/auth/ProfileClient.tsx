@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { EventsManager } from "@/components/events/EventsManager";
-import { getCurrentUser, updateCurrentUser } from "@/lib/api-client";
-import { clearSession, getStoredUser, updateStoredUser } from "@/lib/storage";
+import { updateCurrentUser } from "@/services/api";
+import { useAuthStore } from "@/store/useAuthStore";
 import type { PublicUser } from "@/types/auth";
 
 type DashboardView = "profile" | "events";
@@ -38,10 +38,9 @@ function getViewFromHash(): DashboardView {
 
 export function ProfileClient() {
   const router = useRouter();
+  const { user, setUser, clearUser } = useAuthStore();
   const [activeView, setActiveView] = useState<DashboardView>("profile");
-  const [user, setUser] = useState<PublicUser | null>(null);
   const [feedback, setFeedback] = useState<Feedback>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
@@ -57,25 +56,10 @@ export function ProfileClient() {
   }, []);
 
   useEffect(() => {
-    const storedUser = getStoredUser();
-
-    if (storedUser) {
-      setUser(storedUser);
+    if (user && !avatarPreview) {
+      setAvatarPreview(user.avatarUrl ?? null);
     }
-
-    getCurrentUser()
-      .then(({ user: currentUser }) => {
-        setUser(currentUser);
-        setAvatarPreview(currentUser.avatarUrl);
-        updateStoredUser(currentUser);
-      })
-      .catch(() => {
-        clearSession();
-        setUser(null);
-        router.replace("/login");
-      })
-      .finally(() => setIsLoading(false));
-  }, [router]);
+  }, [user, avatarPreview]);
 
   function showView(view: DashboardView, targetId?: string) {
     setActiveView(view);
@@ -103,7 +87,6 @@ export function ProfileClient() {
       });
 
       setUser(response.user);
-      updateStoredUser(response.user);
       setFeedback({ type: "success", message: "Perfil atualizado com sucesso." });
     } catch (error) {
       setFeedback({
@@ -116,8 +99,7 @@ export function ProfileClient() {
   }
 
   function handleLogout() {
-    clearSession();
-    setUser(null);
+    clearUser();
     router.replace("/login");
   }
 
@@ -143,9 +125,7 @@ export function ProfileClient() {
     reader.readAsDataURL(file);
   }
 
-  if (isLoading) {
-    return null;
-  }
+
 
   if (!user) {
     return (
@@ -226,7 +206,7 @@ export function ProfileClient() {
         </div>
       </aside>
 
-      <main className="profile-workspace">
+      <div className="profile-workspace">
         <header className="profile-workspace__header">
           <div>
             <p className="profile-workspace__eyebrow">Área pessoal CACA</p>
@@ -352,7 +332,7 @@ export function ProfileClient() {
             <EventsManager />
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

@@ -2,17 +2,11 @@ import type { AuthResponse, PublicUser } from "@/types/auth";
 
 const tokenKey = "caca_auth_token";
 const userKey = "caca_auth_user";
-export const sessionChangedEvent = "caca:session-changed";
 
 function canUseStorage() {
   return typeof globalThis.localStorage !== "undefined";
 }
 
-function emitSessionChange() {
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new Event(sessionChangedEvent));
-  }
-}
 
 function decodeJwtPayload(token: string) {
   const payload = token.split(".")[1];
@@ -36,9 +30,11 @@ export function saveSession(session: AuthResponse) {
     return;
   }
 
-  localStorage.setItem(tokenKey, session.token);
+  // Armazenar o token em cookie (válido para toda a aplicação) para permitir SSR
+  const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+  document.cookie = `${tokenKey}=${session.token}; expires=${expires}; path=/; SameSite=Lax`;
+  
   localStorage.setItem(userKey, JSON.stringify(session.user));
-  emitSessionChange();
 }
 
 export function getToken() {
@@ -46,7 +42,8 @@ export function getToken() {
     return null;
   }
 
-  return localStorage.getItem(tokenKey);
+  const match = document.cookie.match(new RegExp(`(^| )${tokenKey}=([^;]+)`));
+  return match ? match[2] : null;
 }
 
 export function isTokenExpired(token: string) {
@@ -95,7 +92,6 @@ export function updateStoredUser(user: PublicUser) {
   }
 
   localStorage.setItem(userKey, JSON.stringify(user));
-  emitSessionChange();
 }
 
 export function clearSession() {
@@ -103,7 +99,6 @@ export function clearSession() {
     return;
   }
 
-  localStorage.removeItem(tokenKey);
+  document.cookie = `${tokenKey}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
   localStorage.removeItem(userKey);
-  emitSessionChange();
 }

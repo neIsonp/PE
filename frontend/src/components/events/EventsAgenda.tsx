@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useEffect, useState, useMemo } from "react";
 import { EventsList } from "./EventsList";
 import { EventsMap } from "@/components/map/EventsMap";
-import { fetchEvents } from "@/lib/api-client";
-import { getValidToken, sessionChangedEvent } from "@/lib/storage";
+import { fetchEvents } from "@/services/api";
+import { useAuthStore } from "@/store/useAuthStore";
 import { islandLocations } from "@/data/events";
 import type { CacaEvent } from "@/types/events";
 
@@ -16,11 +16,16 @@ type Feedback = {
   message: string;
 } | null;
 
-export function EventsAgenda() {
-  const [events, setEvents] = useState<CacaEvent[]>([]);
+type EventsAgendaProps = {
+  initialEvents?: CacaEvent[];
+};
+
+export function EventsAgenda({ initialEvents = [] }: EventsAgendaProps) {
+  const [events, setEvents] = useState<CacaEvent[]>(initialEvents);
   const [feedback, setFeedback] = useState<Feedback>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(initialEvents.length === 0);
+  const [isFirstRender, setIsFirstRender] = useState(true);
+  const { isAuthenticated } = useAuthStore();
 
   // Filters
   const [period, setPeriod] = useState<EventPeriod>("upcoming");
@@ -32,20 +37,7 @@ export function EventsAgenda() {
   const [currentPage, setCurrentPage] = useState(1);
   const eventsPerPage = 6;
 
-  useEffect(() => {
-    function refreshSession() {
-      setIsAuthenticated(Boolean(getValidToken()));
-    }
 
-    refreshSession();
-    window.addEventListener(sessionChangedEvent, refreshSession);
-    window.addEventListener("storage", refreshSession);
-
-    return () => {
-      window.removeEventListener(sessionChangedEvent, refreshSession);
-      window.removeEventListener("storage", refreshSession);
-    };
-  }, []);
 
   // Reset pagination when filters change
   useEffect(() => {
@@ -53,6 +45,12 @@ export function EventsAgenda() {
   }, [period, searchQuery, selectedIsland, selectedDate]);
 
   useEffect(() => {
+    // Evitar fetch duplo no primeiro render caso initialEvents exista e corresponda a "upcoming"
+    if (isFirstRender && period === "upcoming" && initialEvents.length > 0) {
+      setIsFirstRender(false);
+      return;
+    }
+
     async function refreshEvents() {
       setIsLoading(true);
       setFeedback(null);
@@ -67,11 +65,12 @@ export function EventsAgenda() {
         });
       } finally {
         setIsLoading(false);
+        setIsFirstRender(false);
       }
     }
 
     void refreshEvents();
-  }, [period]);
+  }, [period, initialEvents, isFirstRender]);
 
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
@@ -207,7 +206,7 @@ export function EventsAgenda() {
         </aside>
 
         {/* Main content */}
-        <main>
+        <div>
           <div className="agenda-body__header">
             <h2 className="agenda-body__title">
               {period === "upcoming" ? "Próximos Eventos" : period === "past" ? "Eventos Passados" : "Todos os Eventos"}
@@ -278,7 +277,7 @@ export function EventsAgenda() {
               )}
             </>
           )}
-        </main>
+        </div>
       </div>
 
       {/* ── Mapa global ── */}

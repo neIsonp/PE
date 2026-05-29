@@ -1,4 +1,4 @@
-import type { PaginationMeta } from "@/lib/api-client";
+import type { PaginationMeta } from "@/services/api";
 
 type PaginationProps = {
   meta: PaginationMeta;

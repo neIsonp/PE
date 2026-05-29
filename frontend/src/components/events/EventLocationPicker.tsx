@@ -11,8 +11,8 @@ type EventLocationPickerProps = {
 };
 
 function getInitialCoordinates(latitude: string, longitude: string) {
-  const parsedLatitude = Number(latitude);
-  const parsedLongitude = Number(longitude);
+  const parsedLatitude = latitude.trim() !== "" ? Number(latitude) : NaN;
+  const parsedLongitude = longitude.trim() !== "" ? Number(longitude) : NaN;
 
   if (Number.isFinite(parsedLatitude) && Number.isFinite(parsedLongitude)) {
     return {
@@ -22,12 +22,11 @@ function getInitialCoordinates(latitude: string, longitude: string) {
     };
   }
 
-  const island = islandLocations[7]; // Ponta Delgada
-
+  // Centro do arquipélago dos Açores
   return {
-    latitude: island.latitude,
-    longitude: island.longitude,
-    zoom: 8
+    latitude: 38.6,
+    longitude: -28.0,
+    zoom: 7
   };
 }
 
@@ -142,8 +141,8 @@ export function EventLocationPicker({
 
   // Second useEffect to react to prop changes
   useEffect(() => {
-    const lat = Number(latitude);
-    const lng = Number(longitude);
+    const lat = latitude.trim() !== "" ? Number(latitude) : NaN;
+    const lng = longitude.trim() !== "" ? Number(longitude) : NaN;
     
     if (Number.isFinite(lat) && Number.isFinite(lng) && markerRef.current) {
       const currentPos = markerRef.current.getLatLng();

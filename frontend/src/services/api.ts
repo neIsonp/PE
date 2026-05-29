@@ -1,5 +1,5 @@
-import { apiBaseUrl } from "./config";
-import { clearSession, getValidToken } from "./storage";
+import { apiBaseUrl } from "@/lib/config";
+import { clearSession, getValidToken } from "@/lib/storage";
 import type { AuthResponse, PublicUser } from "@/types/auth";
 import type { CacaEvent } from "@/types/events";
 
@@ -45,8 +45,8 @@ export class ApiClientError extends Error {
   }
 }
 
-function getAuthHeaders(message: string) {
-  const token = getValidToken();
+function getAuthHeaders(message: string, serverToken?: string) {
+  const token = serverToken ?? getValidToken();
 
   if (!token) {
     throw new ApiClientError(message, 401);
@@ -129,9 +129,9 @@ export function loginUser(input: { email: string; password: string }) {
   });
 }
 
-export function getCurrentUser() {
+export function getCurrentUser(serverToken?: string) {
   return requestJson<{ user: PublicUser }>("/users/me", {
-    headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente.")
+    headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente.", serverToken)
   });
 }
 
@@ -148,9 +148,9 @@ export function updateCurrentUser(input: {
   });
 }
 
-export function listUsers(params: { page?: number; limit?: number; search?: string } = {}) {
+export function listUsers(params: { page?: number; limit?: number; search?: string } = {}, serverToken?: string) {
   return requestJson<{ users: PublicUser[]; meta: PaginationMeta }>(withQuery("/users", params), {
-    headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente.")
+    headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente.", serverToken)
   });
 }
 
@@ -166,9 +166,9 @@ export function fetchEvents(params: { period?: "upcoming" | "past" } = {}) {
   return requestJson<{ events: CacaEvent[] }>(withQuery("/events", params));
 }
 
-export function fetchMyEvents(params: { period?: "upcoming" | "past" } = {}) {
+export function fetchMyEvents(params: { period?: "upcoming" | "past" } = {}, serverToken?: string) {
   return requestJson<{ events: CacaEvent[] }>(withQuery("/events/mine", params), {
-    headers: getAuthHeaders("Inicie sessão para gerir os seus eventos.")
+    headers: getAuthHeaders("Inicie sessão para gerir os seus eventos.", serverToken)
   });
 }
 
@@ -216,13 +216,14 @@ export function subscribeNewsletter(email: string) {
 }
 
 export function listContactMessages(
-  params: { page?: number; limit?: number; status?: ContactMessageStatus } = {}
+  params: { page?: number; limit?: number; status?: ContactMessageStatus } = {},
+  serverToken?: string
 ) {
   return requestJson<{
     messages: ContactMessage[];
     meta: PaginationMeta;
   }>(withQuery("/contact", params), {
-    headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente.")
+    headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente.", serverToken)
   });
 }
 
@@ -234,11 +235,11 @@ export function updateContactMessageStatus(id: string, status: ContactMessageSta
   });
 }
 
-export function listNewsletterSubscriptions(params: { page?: number; limit?: number } = {}) {
+export function listNewsletterSubscriptions(params: { page?: number; limit?: number } = {}, serverToken?: string) {
   return requestJson<{
     subscriptions: NewsletterSubscription[];
     meta: PaginationMeta;
   }>(withQuery("/newsletter", params), {
-    headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente.")
+    headers: getAuthHeaders("Sessão não encontrada. Inicie sessão novamente.", serverToken)
   });
 }

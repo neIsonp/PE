@@ -5,7 +5,7 @@ import { EventForm } from "./EventForm";
 import { EventsList } from "./EventsList";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { LoadingState } from "@/components/ui/LoadingState";
-import { createEvent, deleteEvent, fetchMyEvents, updateEvent } from "@/lib/api-client";
+import { createEvent, deleteEvent, fetchMyEvents, updateEvent } from "@/services/api";
 import type { CacaEvent } from "@/types/events";
 
 type Feedback = {
@@ -85,6 +85,7 @@ export function EventsManager() {
       });
       await refreshEvents();
     } catch (error) {
+      console.error("DEBUG ERROR IN HANDLESAVEEVENT:", error);
       setFeedback({
         type: "error",
         message: error instanceof Error ? error.message : "Não foi possível guardar o evento."
@@ -153,14 +154,16 @@ export function EventsManager() {
         </div>
 
         {isLoading ? (
-          <p style={{ color: 'var(--cinza-500)', padding: '24px 0' }}>A carregar eventos...</p>
+          <div style={{ padding: '24px 0' }}>
+            <LoadingState title="A carregar eventos" message="Estamos a obter os seus eventos..." />
+          </div>
         ) : (
           <EventsList events={events} canManage onEdit={(evt) => { setEditingEvent(evt); setIsFormModalOpen(true); }} onDelete={setEventToDelete} />
         )}
       </div>
 
       {isFormModalOpen && (
-        <div className="modal-overlay" role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}>
+        <div className="modal-overlay" role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
           <div className="modal-content" style={{ background: 'white', borderRadius: '12px', width: '100%', maxWidth: '1000px', maxHeight: '90vh', overflowY: 'auto', padding: '48px 32px 32px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', position: 'relative' }}>
             <button 
               type="button" 

@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-const API = "http://localhost:3333/api";
+const API = "**/api";
 
 const adminUser = {
   id: "seed-admin-id",
@@ -30,12 +30,12 @@ const seedEvents = [
 test.describe("Acessibilidade — elemento main", () => {
   test("página /login tem elemento main", async ({ page }) => {
     await page.goto("/login");
-    await expect(page.locator("main")).toBeVisible({ timeout: 10000 });
+    await expect(page.locator("main").first()).toBeVisible({ timeout: 10000 });
   });
 
   test("página /registo tem elemento main", async ({ page }) => {
     await page.goto("/registo");
-    await expect(page.locator("main")).toBeVisible({ timeout: 10000 });
+    await expect(page.locator("main").first()).toBeVisible({ timeout: 10000 });
   });
 
   test("página /eventos tem elemento main", async ({ page }) => {
@@ -43,7 +43,7 @@ test.describe("Acessibilidade — elemento main", () => {
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ events: seedEvents }) })
     );
     await page.goto("/eventos");
-    await expect(page.locator("main")).toBeVisible({ timeout: 10000 });
+    await expect(page.locator("main").first()).toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -155,7 +155,7 @@ test.describe("Acessibilidade — navegação por teclado", () => {
 
   test("página /perfil — navegação por teclado chega ao botão Terminar sessão", async ({ page }) => {
     await page.addInitScript(({ user }) => {
-      localStorage.setItem("caca_auth_token", "fake.header.sig");
+      document.cookie = "caca_auth_token=fake.header.sig; path=/";
       localStorage.setItem("caca_auth_user", JSON.stringify(user));
     }, { user: adminUser });
 
@@ -164,9 +164,9 @@ test.describe("Acessibilidade — navegação por teclado", () => {
     );
 
     await page.goto("/perfil");
-    await expect(page.getByText(adminUser.name)).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText("Bem-vindo, Administrador")).toBeVisible({ timeout: 8000 });
 
-    const logoutButton = page.getByRole("button", { name: /Terminar sessão/i });
+    const logoutButton = page.getByRole("button", { name: /Sair/i });
     await logoutButton.focus();
     await expect(logoutButton).toBeFocused();
   });

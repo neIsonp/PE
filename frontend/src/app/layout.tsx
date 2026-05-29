@@ -18,6 +18,7 @@ import "@/styles/sections/contact.css";
 import "@/styles/sections/map-events.css";
 import "@/styles/base/utilities.css";
 import "@/styles/components/js-components.css";
+import { AuthInitializer } from "@/components/auth/AuthInitializer";
 import "./globals.css";
 
 const inter = Inter({
@@ -55,6 +56,7 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <AuthInitializer />
         <a href="#conteudo-principal" className="skip-to-content">
           Saltar para o conteúdo principal
         </a>

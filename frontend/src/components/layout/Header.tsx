@@ -4,8 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { clearSession, getStoredUser, getValidToken, sessionChangedEvent } from "@/lib/storage";
-import type { PublicUser } from "@/types/auth";
+import { useAuthStore } from "@/store/useAuthStore";
 
 type HeaderProps = {
   active?: "home" | "events" | "login" | "profile" | "admin";
@@ -21,7 +20,7 @@ const baseLinks = [
 
 export function Header({ active = "home" }: HeaderProps) {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState<PublicUser | null>(null);
+  const { user: currentUser, clearUser } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -36,24 +35,8 @@ export function Header({ active = "home" }: HeaderProps) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    function refreshSession() {
-      setCurrentUser(getValidToken() ? getStoredUser() : null);
-    }
-
-    refreshSession();
-    window.addEventListener(sessionChangedEvent, refreshSession);
-    window.addEventListener("storage", refreshSession);
-
-    return () => {
-      window.removeEventListener(sessionChangedEvent, refreshSession);
-      window.removeEventListener("storage", refreshSession);
-    };
-  }, []);
-
   function handleLogout() {
-    clearSession();
-    setCurrentUser(null);
+    clearUser();
     setIsOpen(false);
     router.push("/login");
   }

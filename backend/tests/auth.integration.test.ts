@@ -301,13 +301,20 @@ describe("auth, users, events and communications API", () => {
         date: "2026-06-20",
         time: "10:00",
         location: "Ponta Delgada,PT",
+        venue: "Universidade dos Acores, Sala 2.1",
+        latitude: 37.745906,
+        longitude: -25.663789,
         description: "Sessão prática."
       }
     });
-    const createBody = JSON.parse(createResponse.body) as { event: { id: string; title: string } };
+    const createBody = JSON.parse(createResponse.body) as {
+      event: { id: string; title: string; venue: string | null; latitude: number | null; longitude: number | null };
+    };
 
     expect(createResponse.statusCode).toBe(201);
     expect(createBody.event.title).toBe("Workshop de Saúde Digital");
+    expect(createBody.event.venue).toBe("Universidade dos Acores, Sala 2.1");
+    expect(createBody.event.latitude).toBe(37.745906);
 
     const updateResponse = await app.inject({
       method: "PUT",
@@ -320,6 +327,9 @@ describe("auth, users, events and communications API", () => {
         date: "2026-06-21",
         time: "11:00",
         location: "Terceira,PT",
+        venue: "Hospital de Santo Espirito, Auditorio",
+        latitude: 38.656031,
+        longitude: -27.220575,
         description: ""
       }
     });
@@ -334,6 +344,44 @@ describe("auth, users, events and communications API", () => {
 
     expect(listResponse.statusCode).toBe(200);
     expect(listBody.events).toHaveLength(1);
+
+    const { body: otherUserBody } = await registerUser(`other-events-${randomUUID()}@caca.pt`);
+
+    await app.inject({
+      method: "POST",
+      url: "/api/events",
+      headers: {
+        authorization: `Bearer ${otherUserBody.token}`
+      },
+      payload: {
+        title: "Sessão de Outro Utilizador",
+        date: "2026-08-12",
+        time: "15:00",
+        location: "Faial,PT",
+        description: "Evento criado por outro membro."
+      }
+    });
+
+    const myEventsResponse = await app.inject({
+      method: "GET",
+      url: "/api/events/mine?period=upcoming",
+      headers: {
+        authorization: `Bearer ${body.token}`
+      }
+    });
+    const myEventsBody = JSON.parse(myEventsResponse.body) as { events: Array<{ title: string }> };
+
+    expect(myEventsResponse.statusCode).toBe(200);
+    expect(myEventsBody.events.map((event) => event.title)).toEqual([
+      "Workshop de Saúde Digital Atualizado"
+    ]);
+
+    const anonymousMyEventsResponse = await app.inject({
+      method: "GET",
+      url: "/api/events/mine"
+    });
+
+    expect(anonymousMyEventsResponse.statusCode).toBe(401);
 
     const deleteResponse = await app.inject({
       method: "DELETE",

@@ -33,6 +33,23 @@ export async function eventRoutes(app: FastifyInstance) {
   );
 
   routes.get(
+    "/mine",
+    {
+      preHandler: [app.authenticate],
+      schema: {
+        tags: ["events"],
+        security: [{ bearerAuth: [] }],
+        querystring: eventListQuerySchema,
+        response: {
+          200: eventsListResponseSchema,
+          401: errorResponseSchema
+        }
+      }
+    },
+    (request) => eventController.listMyEvents(request)
+  );
+
+  routes.get(
     "/:id",
     {
       schema: {

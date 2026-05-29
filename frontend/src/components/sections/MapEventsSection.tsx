@@ -49,7 +49,7 @@ export function MapEventsSection() {
             </div>
 
             <Link href="/eventos" className="map-events-info__link" style={{ marginTop: 20 }}>
-              Gerir Eventos <span>→</span>
+              Ver Agenda <span>→</span>
             </Link>
           </div>
         </div>

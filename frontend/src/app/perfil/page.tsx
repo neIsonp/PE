@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { ProfileClient } from "@/components/auth/ProfileClient";
-import { Header } from "@/components/layout/Header";
 
 export const metadata: Metadata = {
   title: "Perfil | CACA",
@@ -10,13 +9,10 @@ export const metadata: Metadata = {
 
 export default function PerfilPage() {
   return (
-    <>
-      <Header active="profile" />
-      <main id="conteudo-principal" className="auth-page">
-        <AuthGate>
-          <ProfileClient />
-        </AuthGate>
-      </main>
-    </>
+    <main id="conteudo-principal" className="auth-page">
+      <AuthGate>
+        <ProfileClient />
+      </AuthGate>
+    </main>
   );
 }

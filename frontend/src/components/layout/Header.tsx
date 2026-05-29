@@ -60,9 +60,9 @@ export function Header({ active = "home" }: HeaderProps) {
 
   const sessionLinks = currentUser
     ? [
-        { href: "/perfil", label: "Perfil", key: "profile" as const },
-        ...(currentUser.role === "ADMIN" ? [{ href: "/admin", label: "Admin", key: "admin" as const }] : [])
-      ]
+      { href: "/perfil", label: "Perfil", key: "profile" as const },
+      ...(currentUser.role === "ADMIN" ? [{ href: "/admin", label: "Admin", key: "admin" as const }] : [])
+    ]
     : [{ href: "/login", label: "Entrar", key: "login" as const }];
 
   return (
@@ -104,15 +104,14 @@ export function Header({ active = "home" }: HeaderProps) {
           })}
 
           {currentUser ? (
-            <>
-              <span className="header__session" aria-label={`Sessão iniciada como ${currentUser.name}`}>
-                {currentUser.name.split(" ")[0]}
-                <strong>{currentUser.role === "ADMIN" ? "ADMIN" : "USER"}</strong>
-              </span>
-              <button type="button" className="header__nav-link header__nav-button" onClick={handleLogout}>
-                Sair
-              </button>
-            </>
+            <button
+              type="button"
+              className="header__nav-link header__nav-button"
+              onClick={handleLogout}
+              style={{ color: "#dc2626", fontWeight: 800 }}
+            >
+              Sair
+            </button>
           ) : null}
         </nav>
 

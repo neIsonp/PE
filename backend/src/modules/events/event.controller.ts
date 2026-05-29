@@ -16,6 +16,12 @@ export class EventController {
     return { events };
   }
 
+  async listMyEvents(request: FastifyRequest) {
+    const events = await this.eventService.listEvents(request.query as EventListQuery, request.user.sub);
+
+    return { events };
+  }
+
   async getEvent(request: FastifyRequest) {
     const event = await this.eventService.getEvent((request.params as EventParams).id);
 

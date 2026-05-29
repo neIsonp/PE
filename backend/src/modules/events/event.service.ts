@@ -10,14 +10,20 @@ function normalizeDescription(description?: string | null) {
   return normalizedDescription ? normalizedDescription : null;
 }
 
+function normalizeVenue(venue?: string | null) {
+  const normalizedVenue = venue?.trim();
+
+  return normalizedVenue ? normalizedVenue : null;
+}
+
 export class EventService {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async listEvents(query: EventListQuery = {}) {
+  async listEvents(query: EventListQuery = {}, createdById?: string) {
     const now = new Date();
     const currentDate = now.toISOString().slice(0, 10);
     const currentTime = now.toISOString().slice(11, 16);
-    const where =
+    const periodWhere: Prisma.EventWhereInput | undefined =
       query.period === "upcoming"
         ? {
             OR: [
@@ -37,6 +43,11 @@ export class EventService {
               ]
             }
           : undefined;
+    const where: Prisma.EventWhereInput | undefined = createdById
+      ? {
+          AND: [periodWhere ?? {}, { createdById }]
+        }
+      : periodWhere;
 
     const events = await this.prisma.event.findMany({
       where,
@@ -60,6 +71,9 @@ export class EventService {
     const event = await this.prisma.event.create({
       data: {
         ...input,
+        venue: normalizeVenue(input.venue),
+        latitude: input.latitude ?? null,
+        longitude: input.longitude ?? null,
         description: normalizeDescription(input.description),
         createdById
       }
@@ -83,6 +97,9 @@ export class EventService {
       where: { id },
       data: {
         ...input,
+        venue: normalizeVenue(input.venue),
+        latitude: input.latitude ?? null,
+        longitude: input.longitude ?? null,
         description: normalizeDescription(input.description)
       }
     });

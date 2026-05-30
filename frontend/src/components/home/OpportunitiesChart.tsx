@@ -8,7 +8,7 @@ export function OpportunitiesChart() {
   const innerHeight = height - margin.top - margin.bottom;
   const barGap = 12;
   const barWidth = innerWidth / opportunityChartData.length - barGap;
-  const maxValue = Math.max(...opportunityChartData.map((item) => item.value));
+  const maxValue = Math.max(...opportunityChartData.map((item: { label: string; value: number }) => item.value));
 
   return (
     <section id="grafico" className="section section--alt">
@@ -29,7 +29,7 @@ export function OpportunitiesChart() {
               aria-label="Gráfico de barras de oportunidades"
             >
               <g className="corpo-grafico" transform={`translate(${margin.left} ${margin.top})`}>
-                {opportunityChartData.map((item, index) => {
+                {opportunityChartData.map((item: { label: string; value: number }, index: number) => {
                   const barHeight = (item.value / maxValue) * innerHeight;
                   const x = index * (barWidth + barGap);
                   const y = innerHeight - barHeight;
@@ -43,10 +43,8 @@ export function OpportunitiesChart() {
                         height={barHeight}
                         rx={8}
                         fill="var(--azul-500)"
+                        aria-label={`${item.label}: ${item.value} oportunidades`}
                       >
-                        <title>
-                          {item.label}: {item.value} oportunidades
-                        </title>
                       </rect>
                       <text
                         x={x + barWidth / 2}
@@ -63,7 +61,7 @@ export function OpportunitiesChart() {
                 })}
               </g>
               <g className="eixo-x" transform={`translate(${margin.left} ${height - margin.bottom})`}>
-                {opportunityChartData.map((item, index) => {
+                {opportunityChartData.map((item: { label: string; value: number }, index: number) => {
                   const x = index * (barWidth + barGap) + barWidth / 2;
 
                   return (

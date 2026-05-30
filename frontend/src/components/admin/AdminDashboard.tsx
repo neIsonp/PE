@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import {
-  getCurrentUser,
   listContactMessages,
   listNewsletterSubscriptions,
   listUsers,
@@ -13,8 +12,8 @@ import {
   type ContactMessageStatus,
   type NewsletterSubscription,
   type PaginationMeta
-} from "@/lib/api-client";
-import { clearSession, updateStoredUser } from "@/lib/storage";
+} from "@/services/api";
+import { useAuthStore } from "@/store/useAuthStore";
 import type { PublicUser } from "@/types/auth";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -48,12 +47,11 @@ function getStatusClass(status: ContactMessageStatus) {
 }
 
 export function AdminDashboard() {
-  const [currentUser, setCurrentUser] = useState<PublicUser | null>(null);
+  const { user: currentUser, clearUser } = useAuthStore();
   const [users, setUsers] = useState<PublicUser[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [subscriptions, setSubscriptions] = useState<NewsletterSubscription[]>([]);
   const [feedback, setFeedback] = useState<Feedback>(null);
-  const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isLoadingSubscriptions, setIsLoadingSubscriptions] = useState(false);
@@ -70,21 +68,7 @@ export function AdminDashboard() {
 
   const isAdmin = currentUser?.role === "ADMIN";
 
-  useEffect(() => {
-    getCurrentUser()
-      .then(({ user }) => {
-        setCurrentUser(user);
-        updateStoredUser(user);
-      })
-      .catch((error) => {
-        clearSession();
-        setFeedback({
-          type: "error",
-          message: error instanceof Error ? error.message : "Não foi possível carregar o painel."
-        });
-      })
-      .finally(() => setIsLoadingSession(false));
-  }, []);
+
 
   const loadUsers = useCallback(async () => {
     if (!isAdmin) {
@@ -208,17 +192,8 @@ export function AdminDashboard() {
   }
 
   function handleLogout() {
-    clearSession();
+    clearUser();
     window.location.href = "/login";
-  }
-
-  if (isLoadingSession) {
-    return (
-      <div className="admin-shell">
-        <p className="profile-card__eyebrow">Administração</p>
-        <LoadingState title="A carregar painel" message="Estamos a validar a sessão de administrador." />
-      </div>
-    );
   }
 
   if (currentUser?.role !== "ADMIN") {

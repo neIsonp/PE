@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { seedEvents } from "@/data/events";
 import { EventsMap } from "@/components/map/EventsMap";
-import { fetchEvents } from "@/lib/api-client";
+import { fetchEvents } from "@/services/api";
 import type { CacaEvent } from "@/types/events";
 
 export function MapEventsSection() {

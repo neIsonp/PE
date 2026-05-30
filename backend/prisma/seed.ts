@@ -7,49 +7,61 @@ const prisma = new PrismaClient();
 async function main() {
   const passwordHash = await bcrypt.hash("AdminCACA2026!", 12);
 
+  const adminData = {
+    name: "Administrador CACA",
+    passwordHash,
+    role: "ADMIN" as const,
+    institution: "Centro Académico Clínico dos Açores"
+  };
+
   const admin = await prisma.user.upsert({
     where: { email: "admin@caca.uac.pt" },
-    update: {},
+    update: adminData,
     create: {
-      name: "Administrador CACA",
       email: "admin@caca.uac.pt",
-      passwordHash,
-      role: "ADMIN",
-      institution: "Centro Académico Clínico dos Açores"
+      ...adminData
     }
   });
+
+  const event1Data = {
+    title: "Encontro CACA de Saúde Digital",
+    date: "2026-06-12",
+    time: "10:00",
+    location: "Ponta Delgada,PT",
+    venue: "Universidade dos Acores, Anfiteatro VIII",
+    latitude: 37.745906,
+    longitude: -25.663789,
+    description: "Sessão de partilha sobre plataformas digitais e cuidados de proximidade.",
+    createdById: admin.id
+  };
 
   await prisma.event.upsert({
     where: { id: "seed-event-health-digital" },
-    update: {},
+    update: event1Data,
     create: {
       id: "seed-event-health-digital",
-      title: "Encontro CACA de Saúde Digital",
-      date: "2026-06-12",
-      time: "10:00",
-      location: "Ponta Delgada,PT",
-      venue: "Universidade dos Acores, Anfiteatro VIII",
-      latitude: 37.745906,
-      longitude: -25.663789,
-      description: "Sessão de partilha sobre plataformas digitais e cuidados de proximidade.",
-      createdById: admin.id
+      ...event1Data
     }
   });
 
+  const event2Data = {
+    title: "Workshop de Investigação Clínica",
+    date: "2026-07-03",
+    time: "14:30",
+    location: "Terceira,PT",
+    venue: "Hospital de Santo Espirito da Ilha Terceira",
+    latitude: 38.656031,
+    longitude: -27.220575,
+    description: "Oficina prática para estudantes e profissionais de saúde.",
+    createdById: admin.id
+  };
+
   await prisma.event.upsert({
     where: { id: "seed-event-clinical-research" },
-    update: {},
+    update: event2Data,
     create: {
       id: "seed-event-clinical-research",
-      title: "Workshop de Investigação Clínica",
-      date: "2026-07-03",
-      time: "14:30",
-      location: "Terceira,PT",
-      venue: "Hospital de Santo Espirito da Ilha Terceira",
-      latitude: 38.656031,
-      longitude: -27.220575,
-      description: "Oficina prática para estudantes e profissionais de saúde.",
-      createdById: admin.id
+      ...event2Data
     }
   });
 

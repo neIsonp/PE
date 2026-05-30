@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { z, ZodError } from "zod";
-import { loginUser, registerUser } from "@/lib/api-client";
+import { loginUser, registerUser } from "@/services/api";
 import { saveSession } from "@/lib/storage";
+import { useAuthStore } from "@/store/useAuthStore";
 
 type AuthFormProps = {
   mode: "login" | "register";
@@ -40,6 +41,7 @@ const registerSchema = loginSchema.extend({
 
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
+  const { setUser } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
   const isRegister = mode === "register";
@@ -56,6 +58,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         : await loginUser(loginSchema.parse(data));
 
       saveSession(session);
+      setUser(session.user);
       setFeedback({
         type: "success",
         message: isRegister ? "Conta criada com sucesso." : "Sessão iniciada com sucesso."
